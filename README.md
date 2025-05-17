@@ -1,6 +1,6 @@
 # Nexus
 
-A modern web application built with Next.js, Supabase, and TypeScript.
+A platform that automates client workflows by generating custom code and AI agents from survey data and documentation. It’s a modern web application built with Next.js, Supabase, and TypeScript.
 
 ## 🚀 Features
 
