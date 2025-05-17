@@ -29,7 +29,7 @@ cd nexus
 
 2. Install dependencies:
 ```bash
-pnpm install
+npm install
 ```
 
 3. Set up environment variables:
