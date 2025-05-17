@@ -1,6 +1,6 @@
 # Nexus
 
-A platform that automates client workflows by generating custom code and AI agents from survey data and documentation. It’s a modern web application built with Next.js, Supabase, and TypeScript.
+A platform that automates client workflows by generating custom code and AI agents from survey data and documentation. It's a modern web application built with Next.js, Supabase, and TypeScript.
 
 ## 🚀 Features
 
@@ -16,7 +16,7 @@ A platform that automates client workflows by generating custom code and AI agen
 
 Before you begin, ensure you have the following installed:
 - Node.js (Latest LTS version recommended)
-- pnpm (Package manager)
+- npm (Package manager)
 - Supabase CLI (for local development)
 
 ## 🛠️ Installation
@@ -44,17 +44,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 To start the development server:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
 
 ## 📦 Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
 ## 🏗️ Project Structure
 
