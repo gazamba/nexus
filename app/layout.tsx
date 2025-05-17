@@ -33,5 +33,7 @@ export default async function RootLayout({
 }
 
 export const metadata = {
-  generator: "v0.dev",
+  title: "Nexus App",
+  description:
+    "A platform that automates client workflows by generating custom code and AI agents from survey data and documentation.",
 };
