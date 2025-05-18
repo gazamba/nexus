@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-provider";
+import { CredentialField } from "@/types/types";
 import { createClient } from "@/utils/supabase/client";
 
 export function VaultService() {
@@ -26,17 +27,29 @@ export function VaultService() {
     return data;
   }
 
-  const retrieveCredential = async (
-    vaultKey: string
+  const retrieveCredentialDecryptedSecret = async (
+    vaultkey: string
   ): Promise<Record<string, string>> => {
-    const { data, error } = await supabase.functions.invoke(
-      "vault.get_secret",
-      {
-        body: {
-          secret_id: vaultKey,
-        },
-      }
-    );
+    const { data, error } = await supabase.rpc("retrieve_vault_secret", {
+      vaultkey: vaultkey,
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to decrypt credential from vault: ${error.message}`
+      );
+    }
+
+    return data.credential_data;
+  };
+
+  const retrieveCredentialFieldsByCredentialId = async (
+    credentialId: string
+  ): Promise<CredentialField[]> => {
+    const { data, error } = await supabase
+      .from("credential_field")
+      .select("*")
+      .eq("credential_id", credentialId);
 
     if (error) {
       throw new Error(
@@ -44,7 +57,7 @@ export function VaultService() {
       );
     }
 
-    return data.credential_data;
+    return data;
   };
 
   const deleteCredential = async (vaultKey: string): Promise<void> => {
@@ -62,7 +75,8 @@ export function VaultService() {
 
   return {
     createSecret,
-    retrieveCredential,
+    retrieveCredentialFieldsByCredentialId,
+    retrieveCredentialDecryptedSecret,
     deleteCredential,
   };
 }

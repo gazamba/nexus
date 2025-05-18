@@ -20,32 +20,28 @@ export interface Node {
   updated_at: string | null;
   execute: (
     inputs: Record<string, any>,
-    context: ExecutionContext
+    context: WorkflowExecutionContext
   ) => Promise<Record<string, any>>;
-}
-
-export interface WorkflowNodeReference {
-  id: string;
-  nodeId: string;
-  position: {
-    // Position in the workflow canvas
-    x: number;
-    y: number;
-  };
-  inputs: Record<string, any>;
-  outputs: string[];
-  next: string[];
 }
 
 export interface Workflow {
   id: string;
   name: string;
   description: string;
-  nodes: WorkflowNodeReference[];
-  triggers: {
-    type: "schedule" | "webhook" | "event";
-    config: Record<string, any>;
-  }[];
+  client_id: string;
+  department: string;
+  status: "active" | "inactive" | "building";
+  executions: number;
+  exceptions: number;
+  timesaved: string;
+  costsaved: string;
+  nodes: Node[];
+  schedule_days: number | null;
+  schedule_months: number | null;
+  schedule_hours: number | null;
+  trigger_option: "event" | "schedule";
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Agent {
@@ -63,30 +59,43 @@ export interface Agent {
   isPublic: boolean;
 }
 
-export interface ExecutionContext {
+export interface WorkflowExecutionContext {
   workflowId: string;
   executionId: string;
   clientId: string;
   userId: string;
-  logger: {
-    info: (message: string, details?: any) => Promise<void>;
-    error: (message: string, details?: any) => Promise<void>;
-    warning: (message: string, details?: any) => Promise<void>;
-    success: (message: string, details?: any) => Promise<void>;
-  };
-  storage: {
-    get: (key: string) => Promise<any>;
-    set: (key: string, value: any) => Promise<void>;
-  };
+  credentials: Credential[];
+}
+
+export interface NodeExecutionContext {
+  workflowId: string;
+  executionId: string;
+  clientId: string;
+  userId: string;
+  credentials: Credential[];
+}
+
+export interface AgentExecutionContext {
+  workflowId: string;
+  executionId: string;
+  clientId: string;
+  userId: string;
+  credentials: Credential[];
 }
 
 export interface SurveyResponse {
-  id: string;
-  clientId: string;
-  userId: string;
-  responses: Record<string, any>;
-  createdAt: string;
-  workflowId?: string;
+  workflow_type: string;
+  current_process: string;
+  triggers: string[];
+  pain_points: string[];
+  systems: string[];
+  api_access: string;
+  outputs: string[];
+  agent_interaction: string[];
+  volume: string;
+  priority: string;
+  user_id: string;
+  client_id: string;
 }
 
 export interface WorkflowDoc {
@@ -157,4 +166,30 @@ export interface NodeListItem {
   name: string;
   description: string | null;
   type: string;
+}
+
+export type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "scale";
+
+export interface SurveyQuestion {
+  id: string;
+  type: QuestionType;
+  question: string;
+  options?: string[];
+  required?: boolean;
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  followUp?: {
+    id: string;
+    type: QuestionType;
+    question: string;
+    required?: boolean;
+    placeholder?: string;
+    min?: number;
+    max?: number;
+    condition: {
+      field: string;
+      value: string | string[];
+    };
+  };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { CredentialsManager } from "@/components/credentials/manager";
+import { CredentialsManager } from "@/components/credentials";
 import { useAuth } from "@/contexts/auth-provider";
 import { getClientId } from "@/lib/services/client-service";
 import { useEffect, useState } from "react";

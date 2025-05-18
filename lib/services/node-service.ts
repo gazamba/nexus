@@ -1,5 +1,5 @@
 import { createClient } from "../../utils/supabase/client";
-import type { Node, NodeInput, ExecutionContext } from "@/types/types";
+import type { Node, NodeInput, WorkflowExecutionContext } from "@/types/types";
 
 const supabase = createClient();
 
@@ -35,8 +35,7 @@ export const getNode = async (
       fields: nc.credential.credential_field || [],
     })) || [];
 
-  const node = createRunnableNode(data);
-  return { ...node, credentials };
+  return { ...data, credentials };
 };
 
 export const listNodes = async (clientId: string): Promise<Node[]> => {
@@ -50,7 +49,7 @@ export const listNodes = async (clientId: string): Promise<Node[]> => {
     return [];
   }
 
-  return data.map((node) => createRunnableNode(node));
+  return data;
 };
 
 export const createNode = async (node: {
@@ -155,21 +154,12 @@ export const testNode = async (
   }
 
   try {
-    const executionContext: ExecutionContext = {
+    const executionContext: WorkflowExecutionContext = {
       workflowId: "test",
       executionId: "test-" + Date.now(),
       clientId: context.clientId,
       userId: context.userId,
-      logger: {
-        info: async () => {},
-        error: async () => {},
-        warning: async () => {},
-        success: async () => {},
-      },
-      storage: {
-        get: async () => null,
-        set: async () => {},
-      },
+      credentials: [],
     };
 
     const outputs = await node.execute(inputs, executionContext);
@@ -184,20 +174,41 @@ export const testNode = async (
   }
 };
 
-const createRunnableNode = (nodeData: any): Node => {
-  // Create a function from the node's code
-  const executeFunction = new Function("inputs", "context", nodeData.code) as (
+/**
+ * Executes the code inside a Node's `code` field.
+ * @param node The Node object (must have a `code` string field).
+ * @param inputs The inputs to pass to the node's code.
+ * @param context The execution context.
+ * @returns The result of the node's code execution.
+ */
+
+export async function executeNode(
+  node: Node,
+  inputs: Record<string, any>,
+  context: WorkflowExecutionContext
+): Promise<Record<string, any>> {
+  if (typeof node.code !== "string" || !node.code.trim()) {
+    throw new Error("Node code is missing or invalid.");
+  }
+
+  let fn: (
     inputs: Record<string, any>,
-    context: ExecutionContext
+    context: WorkflowExecutionContext
   ) => Promise<Record<string, any>>;
 
-  return {
-    id: nodeData.id,
-    name: nodeData.name,
-    description: nodeData.description,
-    type: nodeData.type,
-    code: nodeData.code,
-    inputs: nodeData.inputs || [],
-    execute: executeFunction,
-  };
-};
+  try {
+    fn = new Function("inputs", "context", node.code) as (
+      inputs: Record<string, any>,
+      context: WorkflowExecutionContext
+    ) => Promise<Record<string, any>>;
+  } catch (err) {
+    throw new Error("Failed to compile node code: " + String(err));
+  }
+
+  try {
+    const result = await fn(inputs, context);
+    return result;
+  } catch (err) {
+    throw new Error("Error executing node code: " + String(err));
+  }
+}

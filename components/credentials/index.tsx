@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Credential } from "@/types/types";
-import { SavedCredentials } from "@/components/credentials/credentials-manager/saved-credentials";
-import { AddCredentials } from "@/components/credentials/credentials-manager/add-credentials";
+import { Credential, CredentialField } from "@/types/types";
+import { SavedCredentials } from "./saved-credentials";
+import { AddCredentials } from "./add-credentials";
 import { VaultService } from "@/lib/services/vault-service";
 
 export function CredentialsManager({ clientId }: { clientId: string }) {
@@ -13,6 +13,10 @@ export function CredentialsManager({ clientId }: { clientId: string }) {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [activeTab, setActiveTab] = useState("saved");
   const [loading, setLoading] = useState(false);
+  const [editingCredential, setEditingCredential] = useState<
+    Credential | undefined
+  >(undefined);
+  const vaultService = VaultService();
 
   const fetchCredentials = async () => {
     setLoading(true);
@@ -34,6 +38,25 @@ export function CredentialsManager({ clientId }: { clientId: string }) {
     if (!clientId) return;
     fetchCredentials();
   }, [clientId]);
+
+  const handleEdit = async (cred: Credential) => {
+    setActiveTab("add");
+    const { createClient } = await import("@/utils/supabase/client");
+    const supabase = createClient();
+    const { data: fields, error } = await supabase
+      .from("credential_field")
+      .select("id, variable_name, vault_key, credential_id")
+      .eq("credential_id", cred.id);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load credential fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setEditingCredential({ ...cred, fields: fields || [] });
+  };
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -57,7 +80,6 @@ export function CredentialsManager({ clientId }: { clientId: string }) {
 
               if (fetchError) throw fetchError;
 
-              const vaultService = VaultService();
               await Promise.all(
                 fields.map((field) =>
                   vaultService.deleteCredential(field.vault_key)
@@ -82,9 +104,7 @@ export function CredentialsManager({ clientId }: { clientId: string }) {
               });
             }
           }}
-          onEdit={(cred: Credential) => {
-            setActiveTab("add");
-          }}
+          onEdit={handleEdit}
         />
       </TabsContent>
 
@@ -94,7 +114,9 @@ export function CredentialsManager({ clientId }: { clientId: string }) {
           onSuccess={() => {
             fetchCredentials();
             setActiveTab("saved");
+            setEditingCredential(undefined);
           }}
+          initialCredential={editingCredential}
         />
       </TabsContent>
     </Tabs>

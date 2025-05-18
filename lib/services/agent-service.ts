@@ -1,5 +1,5 @@
 import { createClient } from "../../utils/supabase/client";
-import type { Agent, ExecutionContext } from "@/types/types";
+import type { Agent, AgentExecutionContext } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
 
 const supabase = createClient();
@@ -205,59 +205,17 @@ export const executeAgent = async (
   }
 
   const executionId = uuidv4();
-  const executionContext: ExecutionContext = {
+  const executionContext: AgentExecutionContext = {
     workflowId: "none",
     executionId,
     clientId: context.clientId,
     userId: context.userId,
-    logger: {
-      info: async (message, details) =>
-        logExecution(
-          agentId,
-          executionId,
-          "info",
-          message,
-          details,
-          context.clientId
-        ),
-      error: async (message, details) =>
-        logExecution(
-          agentId,
-          executionId,
-          "error",
-          message,
-          details,
-          context.clientId
-        ),
-      warning: async (message, details) =>
-        logExecution(
-          agentId,
-          executionId,
-          "warning",
-          message,
-          details,
-          context.clientId
-        ),
-      success: async (message, details) =>
-        logExecution(
-          agentId,
-          executionId,
-          "success",
-          message,
-          details,
-          context.clientId
-        ),
-    },
-    storage: {
-      get: async (key) => {
-        return null;
-      },
-      set: async (key, value) => {},
-    },
+    credentials: [],
   };
 
   try {
-    // For now, return a mock response
+    // Replace this with your agent's actual logic
+    // For now, just return a mock response
     return {
       success: true,
       response: `Agent ${agent.name} received your message: ${input.message}`,

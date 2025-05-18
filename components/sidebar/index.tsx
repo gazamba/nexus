@@ -1,7 +1,20 @@
 "use client";
 
 import { Suspense } from "react";
-import { Home, Users, Building2, CreditCard, Settings } from "lucide-react";
+import {
+  Home,
+  Users,
+  Building2,
+  CreditCard,
+  Settings,
+  Ticket,
+  MessageSquare,
+  BarChart2,
+  AlertTriangle,
+  Code,
+  Bot,
+  LayoutDashboard,
+} from "lucide-react";
 import { SidebarHeader } from "./header";
 import { SidebarNavigation } from "./navigation";
 import { SidebarLoading } from "./loading";
@@ -10,8 +23,9 @@ import { SidebarLink } from "./types";
 const links: SidebarLink[] = [
   {
     href: "/",
-    icon: Home,
-    label: "Home",
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    activePattern: "/$|^/$",
   },
   {
     href: "/users",
@@ -32,10 +46,40 @@ const links: SidebarLink[] = [
     activePattern: "/billing",
   },
   {
-    href: "/settings",
-    icon: Settings,
-    label: "Settings",
-    activePattern: "/settings",
+    href: "/subscriptions",
+    icon: Ticket,
+    label: "Subscriptions",
+    activePattern: "/subscriptions",
+  },
+  {
+    href: "/messaging",
+    icon: MessageSquare,
+    label: "Messaging",
+    activePattern: "/messaging",
+  },
+  {
+    href: "/reporting",
+    icon: BarChart2,
+    label: "Reporting",
+    activePattern: "/reporting",
+  },
+  {
+    href: "/exceptions",
+    icon: AlertTriangle,
+    label: "Exceptions",
+    activePattern: "/exceptions",
+  },
+  {
+    href: "/nodes",
+    icon: Code,
+    label: "Nodes",
+    activePattern: "/nodes",
+  },
+  {
+    href: "/agents",
+    icon: Bot,
+    label: "Custom Agents",
+    activePattern: "/agents",
   },
 ];
 

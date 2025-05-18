@@ -21,37 +21,9 @@ import {
   advancePipelineStep,
 } from "@/lib/services/pipeline-service";
 import { useAuth } from "@/contexts/auth-provider";
-import { createClient } from "@/utils/supabase/client";
-import { createSurvey } from "@/lib/services/survey-service";
-
-type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "scale";
-
-interface SurveyQuestion {
-  id: string;
-  type: QuestionType;
-  question: string;
-  options?: string[];
-  required?: boolean;
-  placeholder?: string;
-  min?: number;
-  max?: number;
-  followUp?: {
-    id: string;
-    type: QuestionType;
-    question: string;
-    required?: boolean;
-    placeholder?: string;
-    min?: number;
-    max?: number;
-    condition: {
-      field: string;
-      value: string | string[];
-    };
-  };
-}
+import { questions } from "./constants";
 
 export default function SurveyPage() {
-  const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -66,6 +38,12 @@ export default function SurveyPage() {
     setLoading(true);
     const fetchPipelineData = async () => {
       const { data } = await getPipelineData(user.id);
+      console.log(`responses: ${JSON.stringify(data, null, 2)}`);
+      setResponses((prev) => ({
+        ...prev,
+        client_id: data[0].progress.client_id || "",
+      }));
+
       setPipelineData(data);
       setLoading(false);
     };
@@ -94,199 +72,6 @@ export default function SurveyPage() {
       </div>
     );
   }
-
-  const questions: SurveyQuestion[] = [
-    {
-      id: "workflow_type",
-      type: "radio",
-      question: "Which type of workflow do you want to automate?",
-      options: [
-        "Invoice Processing",
-        "Customer Service",
-        "HR Onboarding",
-        "Recruitment",
-        "Data Entry",
-        "Inventory Management",
-        "Other",
-      ],
-      required: true,
-      followUp: {
-        id: "workflow_type_other",
-        type: "text",
-        question: "Please specify the workflow type:",
-        required: true,
-        condition: { field: "workflow_type", value: "Other" },
-      },
-    },
-    {
-      id: "current_process",
-      type: "textarea",
-      question:
-        "Describe the current workflow step-by-step, including who is involved, what tools are used, and how data flows between steps:",
-      required: true,
-      placeholder:
-        "E.g., '1. Receive invoice via email. 2. Manually enter data into Salesforce. 3. Approve in Ariba. 4. Notify team via Slack.'",
-    },
-    {
-      id: "triggers",
-      type: "checkbox",
-      question: "What events should trigger this workflow?",
-      options: [
-        "New email received",
-        "Form submission",
-        "API call or webhook",
-        "Scheduled time (e.g., daily)",
-        "Manual trigger",
-        "Other",
-      ],
-      required: true,
-      followUp: {
-        id: "triggers_other",
-        type: "text",
-        question: "Please specify the trigger:",
-        required: true,
-        condition: { field: "triggers", value: "Other" },
-      },
-    },
-    {
-      id: "pain_points",
-      type: "checkbox",
-      question: "What challenges do you face in this workflow?",
-      options: [
-        "Time-consuming manual data entry",
-        "Frequent data errors or inconsistencies",
-        "Lack of real-time visibility or tracking",
-        "Delays in approvals or processing",
-        "Poor communication between teams",
-        "Difficulty integrating systems",
-        "Other",
-      ],
-      required: true,
-      followUp: {
-        id: "pain_points_other",
-        type: "text",
-        question: "Please describe the other challenge:",
-        required: true,
-        condition: { field: "pain_points", value: "Other" },
-      },
-    },
-    {
-      id: "systems",
-      type: "checkbox",
-      question: "Which systems or tools are currently used in this workflow?",
-      options: [
-        "Email (Gmail, Outlook, etc.)",
-        "Salesforce",
-        "SAP",
-        "Ariba",
-        "Bill.com",
-        "Kronos",
-        "Microsoft Office (Excel, Word, etc.)",
-        "Google Workspace (Sheets, Docs, etc.)",
-        "Slack",
-        "Custom internal systems or APIs",
-        "Other",
-      ],
-      required: true,
-      followUp: {
-        id: "systems_other",
-        type: "text",
-        question: "Please specify the other system or tool:",
-        required: true,
-        condition: { field: "systems", value: "Other" },
-      },
-    },
-    {
-      id: "api_access",
-      type: "radio",
-      question:
-        "Do you have API access or credentials for the systems involved?",
-      options: [
-        "Yes, for all systems",
-        "Yes, for some systems",
-        "No",
-        "Unsure",
-      ],
-      required: true,
-      followUp: {
-        id: "api_access_details",
-        type: "textarea",
-        question:
-          "Please provide details (e.g., which systems, types of API access):",
-        required: true,
-        condition: {
-          field: "api_access",
-          value: ["Yes, for all systems", "Yes, for some systems"],
-        },
-      },
-    },
-    {
-      id: "outputs",
-      type: "checkbox",
-      question:
-        "What outputs or actions should the automated workflow produce?",
-      options: [
-        "Update a system (e.g., Salesforce, Ariba)",
-        "Send notifications (e.g., email, Slack)",
-        "Generate reports or files",
-        "Trigger another workflow",
-        "Interact with users (e.g., via chat or email)",
-        "Other",
-      ],
-      required: true,
-      followUp: {
-        id: "outputs_other",
-        type: "text",
-        question: "Please specify the other output or action:",
-        required: true,
-        condition: { field: "outputs", value: "Other" },
-      },
-    },
-    {
-      id: "agent_interaction",
-      type: "checkbox",
-      question:
-        "If user interaction is needed, which communication channels should the workflow support?",
-      options: [
-        "Chat (e.g., web interface)",
-        "Email",
-        "Slack",
-        "Phone or SMS",
-        "Video call",
-        "None",
-      ],
-      required: true,
-    },
-    {
-      id: "volume",
-      type: "radio",
-      question: "What is the approximate monthly volume of this workflow?",
-      options: [
-        "Less than 100 instances",
-        "100-500 instances",
-        "500-1,000 instances",
-        "More than 1,000 instances",
-      ],
-      required: true,
-    },
-    {
-      id: "priority",
-      type: "scale",
-      question: "How critical is automating this workflow? (1 = Low, 5 = High)",
-      min: 1,
-      max: 5,
-      required: true,
-    },
-    {
-      id: "additional_info",
-      type: "textarea",
-      question:
-        "Any additional details about the workflow or automation preferences?",
-      required: false,
-      placeholder:
-        "E.g., specific compliance requirements, preferred vendors, or constraints.",
-    },
-  ];
 
   const handleTextChange = (questionId: string, value: string) => {
     setResponses((prev) => ({
@@ -361,17 +146,59 @@ export default function SurveyPage() {
     setIsSubmitting(true);
 
     try {
-      const surveyData = {
+      let surveyData: Record<string, any> = {
         ...responses,
         user_id: user.id,
       };
 
-      console.log("Survey data with user_id:", surveyData);
+      // Handle 'Other' follow-up for all relevant checkbox/radio questions
+      const followUpMap = [
+        { main: "systems", other: "systems_other" },
+        { main: "triggers", other: "triggers_other" },
+        { main: "pain_points", other: "pain_points_other" },
+        { main: "outputs", other: "outputs_other" },
+        { main: "workflow_type", other: "workflow_type_other" },
+        { main: "api_access", other: "api_access_details" },
+      ];
+      followUpMap.forEach(({ main, other }) => {
+        if (
+          Array.isArray(surveyData[main]) &&
+          surveyData[main].includes("Other") &&
+          surveyData[other]
+        ) {
+          surveyData[main] = [
+            ...surveyData[main].filter((s: string) => s !== "Other"),
+            surveyData[other],
+          ];
+          delete surveyData[other];
+        } else if (
+          typeof surveyData[main] === "string" &&
+          surveyData[main] === "Other" &&
+          surveyData[other]
+        ) {
+          surveyData[main] = surveyData[other];
+          delete surveyData[other];
+        }
+      });
+      surveyData.user_id = user.id;
 
-      const { error } = await createSurvey(surveyData);
+      const response = await fetch("/api/surveys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(surveyData),
+      });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit survey");
+      }
+
+      const surveyResponse = await response.json();
+
+      if (!surveyResponse.data.id) {
+        throw new Error("Survey response ID not returned from API");
       }
 
       await advancePipelineStep(user.id, 1, 2);
@@ -380,6 +207,35 @@ export default function SurveyPage() {
         title: "Survey submitted",
         description: "Thank you for completing the survey.",
       });
+
+      const analyzeRes = await fetch(
+        `/api/surveys/${surveyResponse.data.id}/analyze`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      console.log(analyzeRes);
+      if (!analyzeRes.ok) {
+        const errorData = await analyzeRes.json();
+        throw new Error(errorData.error || "Failed to analyze survey response");
+      }
+      const aiGeneratedResponse = await analyzeRes.json();
+
+      console.log(aiGeneratedResponse);
+
+      const insertRes = await fetch("/api/workflows/insert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(aiGeneratedResponse),
+      });
+      if (!insertRes.ok) {
+        const errorData = await insertRes.json();
+        throw new Error(
+          errorData.error || "Failed to insert workflows and nodes"
+        );
+      }
 
       router.push("/survey/thank-you");
     } catch (error) {
@@ -472,6 +328,22 @@ export default function SurveyPage() {
                     </Label>
                   </div>
                 ))}
+                {currentQuestion.followUp?.id &&
+                  responses[currentQuestion.id] === "Other" && (
+                    <Input
+                      value={responses[currentQuestion.followUp.id] || ""}
+                      onChange={(e) =>
+                        handleTextChange(
+                          currentQuestion.followUp?.id!,
+                          e.target.value
+                        )
+                      }
+                      placeholder={
+                        currentQuestion.followUp?.question || "Please specify"
+                      }
+                      className="mt-2"
+                    />
+                  )}
               </RadioGroup>
             )}
 
@@ -497,6 +369,22 @@ export default function SurveyPage() {
                     </Label>
                   </div>
                 ))}
+                {currentQuestion.followUp?.id &&
+                  (responses[currentQuestion.id] || []).includes("Other") && (
+                    <Input
+                      value={responses[currentQuestion.followUp.id] || ""}
+                      onChange={(e) =>
+                        handleTextChange(
+                          currentQuestion.followUp?.id!,
+                          e.target.value
+                        )
+                      }
+                      placeholder={
+                        currentQuestion.followUp?.question || "Please specify"
+                      }
+                      className="mt-2"
+                    />
+                  )}
               </div>
             )}
 

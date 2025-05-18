@@ -1,424 +1,219 @@
 import { createClient } from "../../utils/supabase/client";
-import { createWorkflow } from "./workflow-service";
-import type { SurveyResponse, WorkflowDoc } from "@/types/types";
+import type { SurveyResponse } from "@/types/types";
+import OpenAI from "openai";
+const openai = new OpenAI();
 
 const supabase = createClient();
 
-export const processSurveyResponse = async (surveyResponse: {
-  clientId: string;
-  userId: string;
-  responses: Record<string, any>;
-}): Promise<{ id: string; analysisResult?: Record<string, any> }> => {
-  const { data, error } = await supabase
-    .from("survey_response")
-    .insert({
-      client_id: surveyResponse.clientId,
-      user_id: surveyResponse.userId,
-      responses: surveyResponse.responses,
-    })
-    .select("id")
-    .single();
-
-  if (error || !data) {
-    console.error("Error storing survey response:", error);
-    throw new Error("Failed to store survey response");
-  }
-
-  const analysisResult = await analyzeSurveyResponse(surveyResponse.responses);
-
-  return { id: data.id, analysisResult };
-};
-
-export const processWorkflowDoc = async (doc: {
-  clientId: string;
-  uploadedBy: string;
-  filePath: string;
-  fileName: string;
-  fileType: string;
-}): Promise<{
-  id: string;
-  analysisStatus: "pending" | "processing" | "completed" | "failed";
-}> => {
-  const { data, error } = await supabase
-    .from("workflow_doc")
-    .insert({
-      client_id: doc.clientId,
-      uploaded_by: doc.uploadedBy,
-      file_path: doc.filePath,
-      file_name: doc.fileName,
-      file_type: doc.fileType,
-      analysis_status: "pending",
-    })
-    .select("id")
-    .single();
-
-  if (error || !data) {
-    console.error("Error storing workflow document:", error);
-    throw new Error("Failed to store workflow document");
-  }
-
-  analyzeWorkflowDoc(data.id, doc.filePath, doc.fileType).catch((error) => {
-    console.error("Error analyzing workflow document:", error);
-    updateWorkflowDocStatus(data.id, "failed");
-  });
-
-  return { id: data.id, analysisStatus: "pending" };
-};
-
-export const getSurveyResponse = async (
-  id: string
-): Promise<SurveyResponse | null> => {
-  const { data, error } = await supabase
-    .from("survey_response")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) {
-    console.error("Error fetching survey response:", error);
-    return null;
-  }
-
-  return {
-    id: data.id,
-    clientId: data.client_id,
-    userId: data.user_id,
-    responses: data.responses,
-    createdAt: data.created_at,
-    workflowId: data.workflow_id,
-  };
-};
-
-export const getWorkflowDoc = async (
-  id: string
-): Promise<WorkflowDoc | null> => {
-  const { data, error } = await supabase
-    .from("workflow_doc")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) {
-    console.error("Error fetching workflow document:", error);
-    return null;
-  }
-
-  return {
-    id: data.id,
-    clientId: data.client_id,
-    workflowId: data.workflow_id,
-    filePath: data.file_path,
-    fileName: data.file_name,
-    fileType: data.file_type,
-    uploadedBy: data.uploaded_by,
-    createdAt: data.created_at,
-    analysisStatus: data.analysis_status,
-    analysisResult: data.analysis_result,
-  };
-};
-
-export const generateWorkflowFromInputs = async (
-  clientId: string,
-  userId: string,
-  inputs: {
-    surveyResponseIds?: string[];
-    workflowDocIds?: string[];
-    name: string;
-    description: string;
-  }
-): Promise<{ workflowId: string | null; error?: string }> => {
-  try {
-    const surveyResponses: SurveyResponse[] = [];
-    const workflowDocs: WorkflowDoc[] = [];
-
-    if (inputs.surveyResponseIds && inputs.surveyResponseIds.length > 0) {
-      for (const id of inputs.surveyResponseIds) {
-        const response = await getSurveyResponse(id);
-        if (response) surveyResponses.push(response);
-      }
-    }
-
-    if (inputs.workflowDocIds && inputs.workflowDocIds.length > 0) {
-      for (const id of inputs.workflowDocIds) {
-        const doc = await getWorkflowDoc(id);
-        if (doc && doc.analysisStatus === "completed") workflowDocs.push(doc);
-      }
-    }
-
-    if (surveyResponses.length === 0 && workflowDocs.length === 0) {
-      return { workflowId: null, error: "No valid inputs provided" };
-    }
-
-    const workflowStructure = await generateWorkflowStructure(
-      surveyResponses,
-      workflowDocs,
-      inputs.name,
-      inputs.description
-    );
-
-    const workflowId = await createWorkflow({
-      name: inputs.name,
-      description: inputs.description,
-      clientId,
-      createdBy: userId,
-      nodes: workflowStructure.nodes,
-      triggers: workflowStructure.triggers,
-    });
-
-    if (!workflowId) {
-      return { workflowId: null, error: "Failed to create workflow" };
-    }
-
-    for (const response of surveyResponses) {
-      await supabase
-        .from("survey_response")
-        .update({ workflow_id: workflowId })
-        .eq("id", response.id);
-    }
-
-    for (const doc of workflowDocs) {
-      await supabase
-        .from("workflow_doc")
-        .update({ workflow_id: workflowId })
-        .eq("id", doc.id);
-    }
-
-    return { workflowId };
-  } catch (error) {
-    console.error("Error generating workflow from inputs:", error);
-    return { workflowId: null, error: String(error) };
-  }
-};
-
-const analyzeSurveyResponse = async (
-  responses: Record<string, any>
-): Promise<Record<string, any>> => {
-  return {
-    automationPotential: "high",
-    suggestedWorkflows: [
-      {
-        name: "Invoice Processing",
-        description: "Automate the processing of customer invoices",
-        confidence: 0.85,
-      },
-      {
-        name: "Customer Service Ticket Handling",
-        description: "Streamline the handling of customer service tickets",
-        confidence: 0.75,
-      },
-    ],
-    suggestedNodes: [
-      {
-        type: "email-monitor",
-        description: "Monitor email inbox for new invoices",
-        confidence: 0.9,
-      },
-      {
-        type: "pdf-parser",
-        description: "Extract data from PDF invoices",
-        confidence: 0.8,
-      },
-      {
-        type: "salesforce-integration",
-        description: "Update customer records in Salesforce",
-        confidence: 0.7,
-      },
-    ],
-  };
-};
-
-const analyzeWorkflowDoc = async (
-  docId: string,
-  filePath: string,
-  fileType: string
+export const insertWorkflowsAndNodesFromSurveyResponse = async (
+  analyzedSurveyResponse: any
 ): Promise<void> => {
   try {
-    await updateWorkflowDocStatus(docId, "processing");
+    const { workflows, notes } = analyzedSurveyResponse;
 
-    const { data, error } = await supabase.storage
-      .from("workflow-docs")
-      .download(filePath);
+    console.log("Notes for setup:", notes);
 
-    if (error || !data) {
+    for (const workflow of workflows) {
+      const workflowData = {
+        id: workflow.id,
+        name: workflow.name,
+        description: workflow.description,
+        client_id: workflow.client_id,
+        department: workflow.department,
+        status: workflow.status,
+        executions: workflow.executions,
+        exceptions: workflow.exceptions,
+        timesaved: workflow.timesaved,
+        costsaved: workflow.costsaved,
+        schedule_days: workflow.schedule_days,
+        schedule_months: workflow.schedule_months,
+        schedule_hours: workflow.schedule_hours,
+        trigger_option: workflow.trigger_option,
+        created_at: workflow.nodes[0]?.created_at || null,
+        updated_at: workflow.nodes[0]?.updated_at || null,
+      };
+
+      const { error: workflowError } = await supabase
+        .from("workflow")
+        .upsert([workflowData], { onConflict: "id" });
+
+      if (workflowError) {
+        console.error("Error inserting workflow:", workflowError);
+        throw new Error(`Failed to insert workflow ${workflow.id}`);
+      }
+
+      console.log(`Inserted/Updated workflow: ${workflow.name}`);
+
+      for (const node of workflow.nodes) {
+        const nodeData = {
+          id: node.id,
+          name: node.name,
+          description: node.description,
+          type: node.type,
+          code: node.code,
+          workflow_id: node.workflow_id,
+          created_at: node.created_at || null,
+          updated_at: node.updated_at || null,
+        };
+
+        const { error: nodeError } = await supabase
+          .from("node")
+          .upsert([nodeData], { onConflict: "id" });
+
+        if (nodeError) {
+          console.error("Error inserting node:", nodeError);
+          throw new Error(`Failed to insert node ${node.id}`);
+        }
+
+        if (node.inputs && Array.isArray(node.inputs)) {
+          const nodeInputs = node.inputs.map((input: any) => ({
+            name: input.name,
+            type: input.type,
+            required: input.required || false,
+            node_id: node.id,
+            description: input.description || null,
+          }));
+
+          const { error: inputsError } = await supabase
+            .from("node_input")
+            .upsert(nodeInputs, { onConflict: "id" });
+
+          if (inputsError) {
+            console.error("Error inserting node inputs:", inputsError);
+            throw new Error(`Failed to insert inputs for node ${node.id}`);
+          }
+        }
+
+        console.log(`Inserted/Updated node: ${node.name}`);
+      }
+    }
+
+    console.log("All workflows and nodes inserted successfully");
+  } catch (error: any) {
+    console.error("Insertion failed:", error.message);
+    throw new Error(`Failed to insert workflows and nodes: ${error.message}`);
+  }
+};
+
+export const analyzeSurveyResponse = async (
+  surveyResponse: SurveyResponse
+): Promise<Record<string, any>> => {
+  const currentTimestamp = new Date().toISOString();
+
+  console.log(`surveyResponse: ${JSON.stringify(surveyResponse, null, 2)}`);
+
+  const promptAnalysis = `
+You are an automation engineer for the Nexus Factory, a platform that generates automated workflows from client survey responses and documentation. Your input is a JSON payload from a webhook, containing survey responses about one or more client workflows, including workflow type, current process (steps, data flow), triggers, pain points, systems, API access, outputs, interaction channels, volume, priority, compliance, constraints, error handling, user ID, and documentation.
+
+Your task is to:
+- Analyze the survey responses and documentation to identify distinct workflows (e.g., email monitoring to Slack notification as one workflow).
+- For each workflow, create a Workflow object and associated Node objects, mapping each step to Nexus Nodes (e.g., EmailMonitor for email monitoring, Slack for notifications).
+- Generate a JSON output with an array of workflow objects, each containing its nodes array, to populate the workflow and node database tables.
+- Omit Agent data if agent_interaction specifies "None."
+- Include notes for missing information or requirements (e.g., API credentials).
+
+### Guidelines:
+- **Input**: Webhook JSON payload with survey responses and documentation. Assume basic authentication is configured.
+- **Workflow Identification**: Use current_process.steps and documentation to identify distinct workflows. Each workflow should have a clear trigger, steps, and outputs.
+- **Nexus Nodes**: Map to tasks like:
+  - Monitor email inbox (Gmail API, type: EmailMonitor).
+  - Send Slack notifications (Slack API, type: Slack).
+  - Use HTTP requests for unsupported APIs (type: HTTPRequest).
+- **Node Code**: Provide JavaScript snippets for a Node.js environment (e.g., using googleapis for Gmail, @slack/web-api for Slack). Include basic error handling (e.g., try-catch, logging).
+- **Workflow Trigger**: Set trigger_option to event for event-based triggers (e.g., email received) or schedule for time-based triggers.
+- **Outputs**: Map outputs to node tasks (e.g., Slack notification).
+- **Systems**: Use systems to configure nodes (e.g., Gmail API, Slack API). Note custom code needs for unsupported systems in notes.
+- **Pain Points**: Prioritize automation for manual tasks, delays, or errors.
+- **Error Handling**: Incorporate error_handling.strategy in node logic or notes (e.g., retry API calls twice, notify admin).
+- **UUIDs**: Generate new UUIDs for id fields using standard format.
+- **Timestamps**: Use "${currentTimestamp}" for created_at and updated_at.
+- **Execute Logic**: Describe the execute function's behavior in plain text, focusing on inputs, outputs, and error handling.
+- **Documentation**: Use documentation to validate steps and fill gaps (e.g., Slack channel names).
+- **Compliance**: Note GDPR or other compliance_requirements in notes.
+- **Numeric Fields**: Use numeric values for timesaved (hours) and costsaved (dollars) to match database schema.
+
+### Input Format:
+${JSON.stringify(surveyResponse, null, 2)}
+
+### Output Format:
+{
+  "workflows": [
+    {
+      "id": "UUID",
+      "name": "string",
+      "description": "Description of execution logic",
+      "client_id": "client_id from input",
+      "department": "define a department for the workflow",
+      "status": "building",
+      "executions": 0,
+      "exceptions": 0,
+      "timesaved": 0,
+      "costsaved": 0,
+      "nodes": [
+        {
+          "id": "UUID",
+          "name": "string",
+          "description": "string",
+          "type": "string (e.g., EmailMonitor, Slack, HTTPRequest)",
+          "code": "JavaScript code for task",
+          "workflow_id": "workflow.id",
+          "inputs": [
+            {
+              "name": "string",
+              "description": "string",
+              "type": "string",
+              "required": boolean
+            }
+          ],
+          "is_public": false,
+          "created_at": "${currentTimestamp}",
+          "updated_at": "${currentTimestamp}"
+        }
+      ],
+      "schedule_days": null,
+      "schedule_months": null,
+      "schedule_hours": null,
+      "trigger_option": "event"
+    }
+  ],
+  "notes": ["string"]
+}
+
+### Task:
+Analyze the webhook JSON payload to identify distinct workflows. For each workflow, generate a Workflow object with its associated Node objects, mapping steps to Nexus Nodes. Include JavaScript code for node tasks, use numeric timesaved and costsaved, and note any missing information or compliance requirements (e.g., GDPR) in notes. Use new UUIDs for id fields and the timestamp "${currentTimestamp}" for created_at and updated_at. Omit Agent data if agent_interaction is "None."
+`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: promptAnalysis }],
+      response_format: { type: "json_object" },
+    });
+
+    console.log(`response from openai: ${response.choices[0].message.content}`);
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+
+    console.log(`parsed result: ${JSON.stringify(result, null, 2)}`);
+
+    if (!result.workflows || !Array.isArray(result.workflows)) {
       throw new Error(
-        `Failed to download workflow document: ${error?.message}`
+        "Invalid output: workflows array is missing or not an array"
       );
     }
 
-    let text: string;
-    if (fileType === "application/pdf") {
-      text = await extractTextFromPDF(data);
-    } else {
-      text = await data.text();
-    }
+    result.workflows = result.workflows.map((workflow: any) => ({
+      ...workflow,
+      nodes: workflow.nodes.map((node: any) => ({
+        ...node,
+        workflow_id: node.workflow_id || workflow.id,
+      })),
+    }));
 
-    const analysisResult = await analyzeWorkflowText(text);
-
-    await supabase
-      .from("workflow_doc")
-      .update({
-        analysis_status: "completed",
-        analysis_result: analysisResult,
-      })
-      .eq("id", docId);
-  } catch (error) {
-    console.error("Error analyzing workflow document:", error);
-    await updateWorkflowDocStatus(docId, "failed");
+    console.log(`result`);
+    return result;
+  } catch (error: any) {
+    console.error("Error analyzing survey response:", error.message);
+    throw new Error(`Failed to analyze survey response: ${error.message}`);
   }
-};
-
-const updateWorkflowDocStatus = async (
-  docId: string,
-  status: "pending" | "processing" | "completed" | "failed"
-): Promise<void> => {
-  await supabase
-    .from("workflow_doc")
-    .update({ analysis_status: status })
-    .eq("id", docId);
-};
-
-const extractTextFromPDF = async (pdfData: Blob): Promise<string> => {
-  return "This is a mock PDF text extraction";
-};
-
-const analyzeWorkflowText = async (
-  text: string
-): Promise<Record<string, any>> => {
-  return {
-    automationPotential: "high",
-    suggestedWorkflows: [
-      {
-        name: "Invoice Processing",
-        description: "Automate the processing of customer invoices",
-        confidence: 0.85,
-      },
-    ],
-    suggestedNodes: [
-      {
-        type: "email-monitor",
-        description: "Monitor email inbox for new invoices",
-        confidence: 0.9,
-      },
-      {
-        type: "pdf-parser",
-        description: "Extract data from PDF invoices",
-        confidence: 0.8,
-      },
-      {
-        type: "salesforce-integration",
-        description: "Update customer records in Salesforce",
-        confidence: 0.7,
-      },
-    ],
-    extractedEntities: {
-      systems: ["Email", "Salesforce", "Ariba"],
-      roles: ["Accounts Payable Clerk", "Finance Manager"],
-      documents: ["Invoice", "Purchase Order", "Receipt"],
-    },
-  };
-};
-
-const generateWorkflowStructure = async (
-  surveyResponses: SurveyResponse[],
-  workflowDocs: WorkflowDoc[],
-  name: string,
-  description: string
-): Promise<{ nodes: any[]; triggers: any[] }> => {
-  const { data: nodeData } = await supabase
-    .from("nodes")
-    .select("id, name, type")
-    .in("type", [
-      "email-monitor",
-      "pdf-parser",
-      "data-extractor",
-      "salesforce-integration",
-    ])
-    .limit(10);
-
-  const nodes = nodeData || [];
-
-  const emailMonitorNode = nodes.find((n) => n.type === "email-monitor");
-  const pdfParserNode = nodes.find((n) => n.type === "pdf-parser");
-  const dataExtractorNode = nodes.find((n) => n.type === "data-extractor");
-  const salesforceNode = nodes.find((n) => n.type === "salesforce-integration");
-
-  const workflowNodes = [];
-  const triggers = [];
-
-  if (emailMonitorNode) {
-    workflowNodes.push({
-      id: "node1",
-      nodeId: emailMonitorNode.id,
-      inputs: {
-        emailAccount: "invoices@example.com",
-        searchCriteria: "subject:invoice",
-      },
-      outputs: ["email"],
-      position: { x: 100, y: 100 },
-      next: ["node2"],
-    });
-
-    triggers.push({
-      type: "schedule",
-      config: {
-        schedule: "*/15 * * * *",
-        nodeId: "node1",
-      },
-    });
-  }
-
-  if (pdfParserNode) {
-    workflowNodes.push({
-      id: "node2",
-      nodeId: pdfParserNode.id,
-      inputs: {
-        source: "$node1.email.attachments[0]",
-      },
-      outputs: ["text"],
-      position: { x: 300, y: 100 },
-      next: ["node3"],
-    });
-  }
-
-  if (dataExtractorNode) {
-    workflowNodes.push({
-      id: "node3",
-      nodeId: dataExtractorNode.id,
-      inputs: {
-        text: "$node2.text",
-        extractionRules: {
-          invoiceNumber: "Invoice #:\\s*(\\d+)",
-          amount: "Amount:\\s*\\$(\\d+\\.\\d{2})",
-          date: "Date:\\s*(\\d{2}/\\d{2}/\\d{4})",
-        },
-      },
-      outputs: ["extractedData"],
-      position: { x: 500, y: 100 },
-      next: ["node4"],
-    });
-  }
-
-  if (salesforceNode) {
-    workflowNodes.push({
-      id: "node4",
-      nodeId: salesforceNode.id,
-      inputs: {
-        operation: "create",
-        objectType: "Invoice__c",
-        data: {
-          InvoiceNumber__c: "$node3.extractedData.invoiceNumber",
-          Amount__c: "$node3.extractedData.amount",
-          Date__c: "$node3.extractedData.date",
-        },
-      },
-      outputs: ["result"],
-      position: { x: 700, y: 100 },
-      next: [],
-    });
-  }
-
-  return {
-    nodes: workflowNodes,
-    triggers,
-  };
 };

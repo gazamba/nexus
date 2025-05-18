@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-provider";
-import { WorkflowROI } from "@/components/workflow-roi";
+import { WorkflowROI } from "@/components/workflows/roi";
 
 export default function WorkflowROIPage() {
   const { isAdmin, isClient } = useAuth();

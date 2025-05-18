@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,40 @@ export function AddCredentials({
     { key: string; value: string }[]
   >(initialCredential ? [] : [{ key: "", value: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingFields, setIsLoadingFields] = useState(false);
+  const vaultService = VaultService();
+
+  useEffect(() => {
+    const fetchFields = async () => {
+      if (
+        initialCredential &&
+        initialCredential.fields &&
+        initialCredential.fields.length > 0
+      ) {
+        setExtraFields([]);
+        setCredentialName(initialCredential.name || "");
+        setIsLoadingFields(true);
+        try {
+          const fields =
+            await vaultService.retrieveCredentialFieldsByCredentialId(
+              initialCredential.id
+            );
+
+          const fieldsWithValues = fields.map((field) => ({
+            key: field.variable_name,
+            value: field.vault_key,
+          }));
+
+          console.log("Fields with values:", fieldsWithValues);
+
+          setExtraFields(fieldsWithValues);
+        } finally {
+          setIsLoadingFields(false);
+        }
+      }
+    };
+    fetchFields();
+  }, [initialCredential]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +101,6 @@ export function AddCredentials({
       }
 
       for (const { key, value } of extraFields) {
-        const vaultService = VaultService();
         const vaultKey = await vaultService.createSecret(
           value,
           `${credentialName}_${key}_${Date.now()}`
@@ -122,6 +155,14 @@ export function AddCredentials({
   const handleRemoveExtraField = (idx: number) => {
     setExtraFields((prev) => prev.filter((_, i) => i !== idx));
   };
+
+  if (isLoadingFields) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <span>Loading credential fields...</span>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

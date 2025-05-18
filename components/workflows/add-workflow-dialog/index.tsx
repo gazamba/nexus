@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,17 +14,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { WorkflowForm } from "./workflow-form";
 import { NodeSelector } from "./node-selector";
 import { MetricsInput } from "./metrics-input";
+import type { Workflow } from "@/types/types";
 
 interface AddWorkflowDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddWorkflow: (workflow: any) => void;
+  onAddWorkflow?: (workflow: any) => void;
+  onUpdateWorkflow?: (workflow: any) => void;
+  workflow?: Workflow | null;
+  mode?: "add" | "edit";
 }
 
 export function AddWorkflowDialog({
   open,
   onOpenChange,
   onAddWorkflow,
+  onUpdateWorkflow,
+  workflow,
+  mode = "add",
 }: AddWorkflowDialogProps) {
   const [department, setDepartment] = useState("");
   const [workflowName, setWorkflowName] = useState("");
@@ -35,33 +42,43 @@ export function AddWorkflowDialog({
   const [costSaved, setCostSaved] = useState("");
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    if (mode === "edit" && workflow) {
+      setDepartment(workflow.department || "");
+      setWorkflowName(workflow.name || "");
+      setDescription(workflow.description || "");
+      setExecutions(workflow.executions?.toString() || "");
+      setExceptions(workflow.exceptions?.toString() || "");
+      setTimeSaved(workflow.timesaved?.toString() || "");
+      setCostSaved(workflow.costsaved?.toString() || "");
+      setSelectedNodeIds(
+        Array.isArray(workflow.nodes) ? workflow.nodes.map((n) => n.id) : []
+      );
+    } else if (!open) {
+      resetForm();
+    }
+  }, [mode, workflow, open]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newWorkflow = {
-      id: Date.now(),
-      createDate: new Date()
-        .toLocaleString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-        .replace(",", ""),
+    const updatedWorkflow = {
+      ...(workflow || {}),
       department,
-      workflowName,
+      name: workflowName,
       description,
-      nodes: selectedNodeIds.length,
-      nodesList: selectedNodeIds,
       executions: Number.parseInt(executions) || 0,
       exceptions: Number.parseInt(exceptions) || 0,
-      timeSaved: `${timeSaved} hrs`,
-      costSaved: `$${costSaved}`,
+      timesaved: timeSaved,
+      costsaved: costSaved,
+      nodes: selectedNodeIds,
     };
 
-    onAddWorkflow(newWorkflow);
+    if (mode === "edit" && onUpdateWorkflow) {
+      onUpdateWorkflow(updatedWorkflow);
+    } else if (mode === "add" && onAddWorkflow) {
+      onAddWorkflow(updatedWorkflow);
+    }
     resetForm();
     onOpenChange(false);
   };
@@ -82,9 +99,13 @@ export function AddWorkflowDialog({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <DialogHeader>
-            <DialogTitle>Add New Workflow</DialogTitle>
+            <DialogTitle>
+              {mode === "edit" ? "Edit Workflow" : "Add New Workflow"}
+            </DialogTitle>
             <DialogDescription>
-              Enter the details for the new workflow ROI.
+              {mode === "edit"
+                ? "Update the details for this workflow."
+                : "Enter the details for the new workflow ROI."}
             </DialogDescription>
           </DialogHeader>
 
@@ -128,7 +149,9 @@ export function AddWorkflowDialog({
           </ScrollArea>
 
           <DialogFooter>
-            <Button type="submit">Add Workflow</Button>
+            <Button type="submit">
+              {mode === "edit" ? "Update Workflow" : "Add Workflow"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

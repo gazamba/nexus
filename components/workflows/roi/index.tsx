@@ -1,45 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-provider";
+import { getClientId } from "@/lib/services/client-service";
 import { AddWorkflowDialog } from "../add-workflow-dialog";
 import { Actions } from "./actions";
 import { WorkflowTable } from "./table";
-import { Workflow } from "./types";
-
-// Sample workflow data
-const initialWorkflowData: Workflow[] = [
-  {
-    id: 1,
-    createDate: "2025-05-14 09:30",
-    department: "Finance",
-    workflowName: "Invoice Processing",
-    description: "Automated invoice processing workflow",
-    nodes: 12,
-    executions: 1234,
-    exceptions: 23,
-    timeSaved: "155.5 hrs",
-    costSaved: "$15,650",
-  },
-  {
-    id: 2,
-    createDate: "2025-05-13 14:15",
-    department: "HR",
-    workflowName: "Employee Onboarding",
-    description: "New employee onboarding automation",
-    nodes: 8,
-    executions: 456,
-    exceptions: 5,
-    timeSaved: "89.2 hrs",
-    costSaved: "$8,920",
-  },
-];
+import { Workflow } from "@/types/types";
+import { listWorkflows } from "@/lib/services/workflow-service";
 
 export function WorkflowROI() {
   const { user } = useAuth();
-  const [workflowData, setWorkflowData] =
-    useState<Workflow[]>(initialWorkflowData);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [workflowData, setWorkflowData] = useState<Workflow[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchClientIdAndWorkflows = async () => {
+      if (!user?.id) return;
+      const clientId = await getClientId(user.id);
+      setClientId(clientId);
+      if (clientId) {
+        const data = await listWorkflows(clientId);
+        setWorkflowData(data);
+      }
+    };
+    fetchClientIdAndWorkflows();
+  }, [user?.id]);
 
   const handleAddWorkflow = (newWorkflow: Workflow) => {
     setWorkflowData([newWorkflow, ...workflowData]);
