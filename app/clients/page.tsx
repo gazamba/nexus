@@ -1,5 +1,5 @@
-import { ClientsListPage } from "@/components/clients-list-page"
+import { ClientsList } from "@/components/clients/list";
 
 export default function ClientsPage() {
-  return <ClientsListPage />
+  return <ClientsList />;
 }

@@ -1,4 +1,4 @@
-import { AgentForm } from "@/components/agent-form";
+import { AgentForm } from "@/components/agents/form";
 
 export default function EditAgentPage({
   params,

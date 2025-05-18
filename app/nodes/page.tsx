@@ -1,4 +1,4 @@
-import { NodesList } from "@/components/nodes-list";
+import { NodesList } from "@/components/nodes/list";
 
 export const dynamic = "force-dynamic";
 

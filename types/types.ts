@@ -15,6 +15,9 @@ export interface Node {
   code: string | null;
   workflow_id: string;
   inputs: NodeInput[];
+  is_public: boolean;
+  created_at: string | null;
+  updated_at: string | null;
   execute: (
     inputs: Record<string, any>,
     context: ExecutionContext
@@ -147,4 +150,11 @@ export interface PipelineProgress {
   user_id: string;
   status: "pending" | "completed" | "in-progress";
   completed_at: string;
+}
+
+export interface NodeListItem {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
 }

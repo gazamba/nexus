@@ -1,6 +1,6 @@
 "use client";
 
-import { WorkflowExecutionLogs } from "@/components/workflow-execution-logs";
+import { WorkflowExecutionLogs } from "@/components/workflow-execution-logs/index";
 
 export default function ReportingPage() {
   return (

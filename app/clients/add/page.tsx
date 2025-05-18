@@ -1,4 +1,4 @@
-import { AddNewClient } from "@/components/add-new-client";
+import { AddNewClient } from "@/components/clients/add";
 
 export default function AddClientPage() {
   return (

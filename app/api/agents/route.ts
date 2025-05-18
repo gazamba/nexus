@@ -75,14 +75,40 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { data: userRole } = await supabase
+      .from("profile")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    console.log(userRole);
+
     const url = new URL(request.url);
     const clientId = url.searchParams.get("clientId");
 
-    if (!clientId) {
-      return NextResponse.json({ error: "Missing client ID" }, { status: 400 });
+    if (userRole?.role !== "admin" && !clientId) {
+      return NextResponse.json(
+        { error: "Client ID is required for non-admin users" },
+        { status: 400 }
+      );
     }
 
-    const agents = await listAgents(clientId);
+    if (userRole?.role !== "admin" && clientId) {
+      const { data: userClient } = await supabase
+        .from("users")
+        .select("client_id")
+        .eq("id", userId)
+        .single();
+
+      if (userClient?.client_id !== clientId) {
+        return NextResponse.json(
+          { error: "Unauthorized to access this client's agents" },
+          { status: 403 }
+        );
+      }
+    }
+
+    const agents = await listAgents(clientId || undefined);
 
     return NextResponse.json(agents);
   } catch (error) {

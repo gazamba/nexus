@@ -1,4 +1,4 @@
-import { AgentsList } from "@/components/agents-list";
+import { AgentsList } from "@/components/agents/agents-list";
 
 export const dynamic = "force-dynamic";
 

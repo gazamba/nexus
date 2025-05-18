@@ -1,4 +1,4 @@
-import { ExceptionsManager } from "@/components/exceptions-manager";
+import { ExceptionsManager } from "@/components/exceptions/manager";
 
 export default function ExceptionsPage() {
   return (

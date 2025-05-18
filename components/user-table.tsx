@@ -1,6 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { User } from "@/types/types";
 
 interface TableHeaderProps {
@@ -17,11 +16,7 @@ interface UserTableProps {
   canManageUser?: (user: User) => boolean;
 }
 
-export function UserTable({
-  users,
-  clients = [],
-  canManageUser,
-}: UserTableProps) {
+export function UserTable({ users, canManageUser }: UserTableProps) {
   if (!users || users.length === 0) {
     return (
       <div className="border rounded-md p-8 text-center">

@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-provider";
-import { Sidebar } from "@/components/sidebar";
-import { ClientSidebar } from "@/components/client-sidebar";
+import { Sidebar } from "@/components/sidebar/index";
+import { ClientSidebar } from "@/components/client-sidebar/index";
 import { TopBar } from "@/components/top-bar";
 import { usePathname } from "next/navigation";
 

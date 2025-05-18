@@ -32,11 +32,14 @@ export const getAgent = async (agentId: string): Promise<Agent | null> => {
   };
 };
 
-export const listAgents = async (clientId: string): Promise<Agent[]> => {
-  const { data, error } = await supabase
-    .from("agent")
-    .select("*")
-    .eq("client_id", clientId);
+export const listAgents = async (clientId?: string): Promise<Agent[]> => {
+  let query = supabase.from("agent").select("*");
+
+  if (clientId) {
+    query = query.eq("client_id", clientId);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) {
     console.error("Error fetching agents:", error);

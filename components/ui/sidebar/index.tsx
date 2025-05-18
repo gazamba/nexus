@@ -1,0 +1,10 @@
+export { SidebarProvider, useSidebar } from "./context";
+export { Sidebar } from "./components/sidebar";
+export { SidebarTrigger } from "./components/sidebar-trigger";
+export { SidebarRail } from "./components/sidebar-rail";
+export { SidebarInset } from "./components/sidebar-inset";
+export { SidebarInput } from "./components/sidebar-input";
+export { SidebarHeader } from "./components/sidebar-header";
+export { SidebarFooter } from "./components/sidebar-footer";
+export { SidebarSeparator } from "./components/sidebar-separator";
+export { SidebarContent } from "./components/sidebar-content";

@@ -2,14 +2,16 @@
 
 import { useAuth } from "@/contexts/auth-provider";
 import { WorkflowROI } from "@/components/workflow-roi";
-import { ClientSidebar } from "@/components/client-sidebar";
-import { Sidebar } from "@/components/sidebar";
 
 export default function WorkflowROIPage() {
   const { isAdmin, isClient } = useAuth();
 
+  if (!isAdmin && !isClient) {
+    return null;
+  }
+
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex-1 overflow-auto p-6">
       <WorkflowROI />
     </div>
   );

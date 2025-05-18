@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
-import { NodeDetail } from "@/components/node-detail";
+import { NodeDetail } from "@/components/nodes/detail";
 
 export default async function NodeDetailPage({
   params,

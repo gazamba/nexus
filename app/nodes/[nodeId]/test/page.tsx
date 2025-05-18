@@ -1,6 +1,8 @@
+"use client";
+
 import { createClient } from "@/utils/supabase/client";
-import { NodesSidebar } from "@/components/nodes-sidebar";
-import { NodeTester } from "@/components/node-tester";
+import { NodesSidebar } from "@/components/nodes/sidebar";
+import { NodeTester } from "@/components/nodes/tester";
 import { notFound } from "next/navigation";
 
 export default async function TestNodePage({

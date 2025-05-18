@@ -1,4 +1,4 @@
-import { NodeForm } from "@/components/node-form";
+import { NodeForm } from "@/components/nodes/node-form";
 
 export default function NewNodePage() {
   return (
