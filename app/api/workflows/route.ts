@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createWorkflow, listWorkflows } from "@/lib/services/workflow-service";
-import { generateWorkflowFromInputs } from "@/lib/services/input-processing-service";
+import { generateWorkflowFromSurveyResponse } from "@/lib/services/input-processing-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -26,12 +26,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.surveyResponseIds || body.workflowDocIds) {
-      const result = await generateWorkflowFromInputs(body.clientId, userId, {
-        name: body.name,
-        description: body.description,
-        surveyResponseIds: body.surveyResponseIds,
-        workflowDocIds: body.workflowDocIds,
-      });
+      const result = await generateWorkflowFromSurveyResponse(
+        body.clientId,
+        userId,
+        {
+          name: body.name,
+          description: body.description,
+          surveyResponseIds: body.surveyResponseIds,
+          workflowDocIds: body.workflowDocIds,
+        }
+      );
 
       if (result.error) {
         return NextResponse.json({ error: result.error }, { status: 400 });

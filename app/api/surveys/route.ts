@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
-  getSurveyResponse,
-  processSurveyResponse,
-} from "@/lib/services/input-processing-service";
+  createSurveyResponse,
+  listSurveyResponses,
+} from "@/lib/services/survey-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -19,18 +19,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-
-    if (!body.clientId || !body.responses) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const result = await processSurveyResponse({
-      clientId: body.clientId,
-      userId: userId,
-      responses: body.responses,
+    console.log(`body: ${JSON.stringify(body, null, 2)}`);
+    const result = await createSurveyResponse({
+      ...body,
+      user_id: userId,
+      client_id: body.client_id,
     });
 
     return NextResponse.json(result);
@@ -47,23 +40,16 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
+    const user = userData?.user;
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json(
         { error: "User not authenticated" },
         { status: 401 }
       );
     }
 
-    const url = new URL(request.url);
-    const id = url.searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json({ error: "Missing survey ID" }, { status: 400 });
-    }
-
-    const surveyResponse = await getSurveyResponse(id);
+    const surveyResponse = await listSurveyResponses(user.id);
     if (!surveyResponse) {
       return NextResponse.json(
         { error: "Survey response not found" },
