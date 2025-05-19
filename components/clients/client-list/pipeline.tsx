@@ -71,7 +71,7 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
               variant: "default",
             });
             setIsLoading(false);
-            return;
+            router.refresh();
           } else {
             console.log("No analyzed_survey_response found.");
           }

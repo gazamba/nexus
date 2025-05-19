@@ -15,7 +15,7 @@ export const getAgent = async (agentId: string): Promise<Agent | null> => {
     console.error("Error fetching agent:", error);
     return null;
   }
-
+  console.log(`agent: ${JSON.stringify(data)}`);
   return {
     id: data.id,
     name: data.name,
@@ -85,14 +85,13 @@ export const createAgent = async (agent: {
       type: agent.type,
       status: agent.status,
       capabilities: agent.capabilities,
-      lastactive: agent.lastactive,
+      // lastactive: agent.lastactive,
       model: agent.model,
       temperature: agent.temperature,
       maxtokens: agent.maxtokens,
       systemprompt: agent.systemprompt,
       ispublic: agent.ispublic,
       client_id: agent.clientId,
-      created_by: agent.createdBy,
     })
     .select("id")
     .single();

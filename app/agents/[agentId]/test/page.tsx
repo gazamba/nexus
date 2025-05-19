@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Bot } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,12 +17,37 @@ interface Message {
 export default function TestAgentPage({
   params,
 }: {
-  params: { agentId: string };
+  params: Promise<{ agentId: string }>;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [agentName, setAgentName] = useState<string>("");
+  const [isLoadingAgent, setIsLoadingAgent] = useState(true);
+
+  const { agentId } = use(params);
+
+  useEffect(() => {
+    const fetchAgent = async () => {
+      setIsLoadingAgent(true);
+      try {
+        const res = await fetch(`/api/agents/${agentId}`);
+        if (res.ok) {
+          const agent = await res.json();
+          setAgentName(agent.name || "Agent");
+        } else {
+          setAgentName("Agent");
+        }
+      } catch (error) {
+        console.error("Error fetching agent:", error);
+        setAgentName("Agent");
+      } finally {
+        setIsLoadingAgent(false);
+      }
+    };
+    fetchAgent();
+  }, [agentId]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -32,50 +58,34 @@ export default function TestAgentPage({
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
-    // Simulate agent response
-    setTimeout(() => {
-      const agentMessage: Message = {
-        role: "assistant",
-        content:
-          "This is a simulated response from the agent. In production, this would be the actual response from the AI model.",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, agentMessage]);
-      setIsLoading(false);
-    }, 1000);
-
-    // In production, you would call the API
-    /*
     try {
-      const response = await fetch(`/api/agents/${params.agentId}/test`, {
+      const response = await fetch(`/api/agents/${agentId}/test`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: input })
-      })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to get agent response")
+        throw new Error("Failed to get agent response");
       }
 
-      const data = await response.json()
+      const data = await response.json();
       const agentMessage: Message = {
         role: "assistant",
         content: data.response,
-        timestamp: new Date().toISOString()
-      }
-      setMessages(prev => [...prev, agentMessage])
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, agentMessage]);
     } catch (error) {
-      console.error("Error testing agent:", error)
+      console.error("Error testing agent:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-    */
   };
 
   return (
@@ -85,7 +95,11 @@ export default function TestAgentPage({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold">Test Agent</h1>
+        {isLoadingAgent ? (
+          <Skeleton className="h-8 w-48" />
+        ) : (
+          <h1 className="text-2xl font-bold">Test {agentName}</h1>
+        )}
       </div>
 
       <Card>
