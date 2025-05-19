@@ -62,7 +62,7 @@ export async function PATCH(
     }
 
     const surveyId = await params.surveyId;
-
+    console.log(`surveyId: ${surveyId}`);
     if (!surveyId) {
       return NextResponse.json({ error: "Missing survey ID" }, { status: 400 });
     }

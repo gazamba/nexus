@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       ...body,
       user_id: userId,
       client_id: body.client_id,
+      pipeline_group_id: body.pipeline_group_id,
     });
 
     return NextResponse.json(result);

@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/contexts/auth-provider";
 import { questions } from "./constants";
 import { getClientId } from "@/lib/services/client-service";
+import { v4 as uuidv4 } from "uuid";
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -56,9 +57,27 @@ export default function SurveyPage() {
     fetchPipelineData();
   }, [user?.id]);
 
-  const isInitialSurveyCompleted =
-    pipelineData.find((step) => step.step_name === "Discovery: Initial Survey")
-      ?.progress?.status === "completed";
+  // Group pipelineData by pipeline_group_id
+  const pipelineGroups: Record<string, any[]> = {};
+  for (const step of pipelineData) {
+    const groupId = step.progress?.pipeline_group_id;
+    if (!groupId) continue;
+    if (!pipelineGroups[groupId]) pipelineGroups[groupId] = [];
+    pipelineGroups[groupId].push(step);
+  }
+
+  // Check if any pipeline group is still in progress (last step not completed)
+  let hasActivePipeline = false;
+  for (const groupId in pipelineGroups) {
+    const steps = pipelineGroups[groupId];
+    const lastStep = steps.reduce((prev, curr) =>
+      prev.step_order > curr.step_order ? prev : curr
+    );
+    if (lastStep?.progress?.status !== "completed") {
+      hasActivePipeline = true;
+      break;
+    }
+  }
 
   if (loading) {
     return (
@@ -69,7 +88,7 @@ export default function SurveyPage() {
     );
   }
 
-  if (isInitialSurveyCompleted) {
+  if (hasActivePipeline) {
     return (
       <div className="container py-10">
         <div className="w-full max-w-2xl mx-auto text-center text-lg text-muted-foreground border rounded-lg p-8 bg-muted">
@@ -152,10 +171,13 @@ export default function SurveyPage() {
     setIsSubmitting(true);
 
     try {
+      // Generate a new pipeline_group_id for this survey/pipeline run
+      const pipeline_group_id = uuidv4();
       let surveyData: Record<string, any> = {
         ...responses,
         user_id: user.id,
         client_id: clientId,
+        pipeline_group_id, // include the group id
       };
 
       const followUpMap = [
@@ -204,7 +226,7 @@ export default function SurveyPage() {
       }
 
       const surveyResponse = await response.json();
-
+      console.log(`surveyResponse: ${JSON.stringify(surveyResponse, null, 2)}`);
       if (!surveyResponse.data.id) {
         throw new Error("Survey response ID not returned from API");
       }
@@ -244,18 +266,8 @@ export default function SurveyPage() {
         throw new Error(errorData.error || "Failed to update survey response");
       }
 
-      // TODO: Uncomment this when we have the workflow insert endpoint
-      // const insertRes = await fetch("/api/workflows/insert", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(aiGeneratedResponse),
-      // });
-      // if (!insertRes.ok) {
-      //   const errorData = await insertRes.json();
-      //   throw new Error(
-      //     errorData.error || "Failed to insert workflows and nodes"
-      //   );
-      // }
+      // After survey is created, create the first pipeline step with the same pipeline_group_id
+      await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
 
       router.refresh();
       router.push("/");

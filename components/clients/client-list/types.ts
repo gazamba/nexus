@@ -56,4 +56,5 @@ export interface PipelineProgress {
   status: string;
   created_at?: string;
   updated_at?: string;
+  pipeline_group_id?: string;
 }

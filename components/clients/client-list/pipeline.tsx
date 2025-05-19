@@ -34,6 +34,10 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     setIsLoading(true);
     try {
       const step = localPipeline[currentStepIndex];
+      const pipelineGroupId = step.progress?.pipeline_group_id;
+      if (!pipelineGroupId) {
+        throw new Error("Missing pipeline_group_id for this step");
+      }
       console.log("Current step:", step);
 
       if (step?.step_name === "Credentials collected") {
@@ -60,7 +64,8 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
             if (factoryStep && factoryStep.progress === null) {
               await createNextPipelineProgress(
                 step.progress?.user_id || "",
-                clientId
+                clientId,
+                pipelineGroupId
               );
               console.log("Marked 'Factory build initiated' as completed.");
             }
@@ -80,7 +85,11 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
         }
       }
 
-      await createNextPipelineProgress(step.progress?.user_id || "", clientId);
+      await createNextPipelineProgress(
+        step.progress?.user_id || "",
+        clientId,
+        pipelineGroupId
+      );
 
       const { data } = await getPipelineDataByClient(clientId);
       setLocalPipeline(data);

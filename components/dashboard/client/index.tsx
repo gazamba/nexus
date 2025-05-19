@@ -21,18 +21,20 @@ export function ClientDashboard() {
     if (!user?.id) return;
     setLoading(true);
     const fetchAll = async () => {
-      const clientId = await getClientId(user.id);
-      setClientId(clientId);
-      const { data } = await getPipelineData(user.id);
-      setPipelineData(data);
-      setLoading(false);
+      try {
+        const clientId = await getClientId(user.id);
+        setClientId(clientId);
+        const { data } = await getPipelineData(user.id);
+        console.log("Pipeline data:", data); // Debug log
+        setPipelineData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAll();
   }, [user?.id]);
-
-  const isInitialSurveyCompleted =
-    pipelineData.find((step) => step.step_name === "Discovery: Initial Survey")
-      ?.progress?.status === "completed";
 
   if (loading) {
     return (
@@ -43,23 +45,35 @@ export function ClientDashboard() {
     );
   }
 
+  // Only check status after data is loaded
+  const isInitialSurveyCompleted =
+    pipelineData.find((step) => step.step_name === "Discovery: Initial Survey")
+      ?.progress?.status === "completed";
+
+  const isFactoryBuildCompleted =
+    pipelineData.find((step) => step.step_name === "Factory build initiated")
+      ?.progress?.status === "completed";
+
+  // New: check if the final step is completed
+  const lastStep = pipelineData.reduce((prev, curr) =>
+    prev.step_order > curr.step_order ? prev : curr
+  );
+  const isPipelineFullyCompleted = lastStep?.progress?.status === "completed";
+
+  console.log("Survey completed:", isInitialSurveyCompleted); // Debug log
+  console.log("Factory build completed:", isFactoryBuildCompleted); // Debug log
+  console.log("Pipeline fully completed:", isPipelineFullyCompleted); // Debug log
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <main className="flex-1 overflow-auto p-6">
-        <SurveyBanner isInitialSurveyCompleted={isInitialSurveyCompleted} />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Pipeline pipelineData={pipelineData} clientId={clientId || ""} />
-
-          <div className="space-y-6">
-            <TimeSaved lastWeek="24.5 hrs" allTime="168.2 hrs" />
-            <MoneySaved lastWeek="$2,450" allTime="$16,820" />
-            <ActiveWorkflows count={12} />
-          </div>
-
-          {user && <UserCard user={user} />}
-        </div>
-      </main>
+    <div className="space-y-6">
+      <SurveyBanner isPipelineFullyCompleted={isPipelineFullyCompleted} />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <TimeSaved lastWeek="24.5 hrs" allTime="168.2 hrs" />
+        <MoneySaved lastWeek="$2,450" allTime="$16,820" />
+        <ActiveWorkflows count={12} />
+        {user && <UserCard user={user} />}
+      </div>
+      {clientId && <Pipeline pipelineData={pipelineData} clientId={clientId} />}
     </div>
   );
 }
