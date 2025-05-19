@@ -57,8 +57,8 @@ export async function signup(formData: FormData) {
       avatar_initial: firstName[0],
       role: role,
       phone: phone,
-      is_billing: isBilling,
-      is_admin: isAdmin,
+      billing: isBilling,
+      admin: isAdmin,
       notes: notes,
     });
     if (profileError) {

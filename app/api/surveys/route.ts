@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   createSurveyResponse,
   listSurveyResponses,
+  getSurveyResponseByClientAndUser,
 } from "@/lib/services/survey-service";
 import { createClient } from "@/utils/supabase/server";
 
@@ -47,6 +48,24 @@ export async function GET(request: NextRequest) {
         { error: "User not authenticated" },
         { status: 401 }
       );
+    }
+
+    const url = new URL(request.url);
+    const clientId = url.searchParams.get("client_id");
+    const userId = url.searchParams.get("user_id");
+
+    if (clientId && userId) {
+      const surveyResponse = await getSurveyResponseByClientAndUser(
+        clientId,
+        userId
+      );
+      if (!surveyResponse) {
+        return NextResponse.json(
+          { error: "Survey response not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(surveyResponse);
     }
 
     const surveyResponse = await listSurveyResponses(user.id);

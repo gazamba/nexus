@@ -19,7 +19,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const surveyId = params.surveyId;
+    const surveyId = await params.surveyId;
 
     if (!surveyId) {
       return NextResponse.json(
@@ -56,6 +56,7 @@ export async function PATCH(
 ) {
   try {
     const supabase = await createClient();
+    const surveyId = await params.surveyId;
 
     const { analyzedSurveyResponse } = await request.json();
 
@@ -72,7 +73,7 @@ export async function PATCH(
         analyzed_survey_response: analyzedSurveyResponse,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.surveyId)
+      .eq("id", surveyId)
       .select()
       .single();
 

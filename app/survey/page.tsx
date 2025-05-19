@@ -16,11 +16,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
-import { insertAnalyzedSurveyResponse } from "@/lib/services/input-processing-service";
-import { getPipelineData } from "@/lib/services/pipeline-service";
-import { advancePipelineStep } from "@/lib/services/pipeline-service";
+import {
+  createNextPipelineProgress,
+  getPipelineData,
+} from "@/lib/services/pipeline-service";
 import { useAuth } from "@/contexts/auth-provider";
 import { questions } from "./constants";
+import { getClientId } from "@/lib/services/client-service";
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -31,16 +33,21 @@ export default function SurveyPage() {
   const { user } = useAuth();
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [clientId, setClientId] = useState<string>("");
   useEffect(() => {
     if (!user?.id) return;
+    const fetchClientId = async () => {
+      const clientId = await getClientId(user.id);
+      setClientId(clientId);
+    };
+    fetchClientId();
     setLoading(true);
     const fetchPipelineData = async () => {
       const { data } = await getPipelineData(user.id);
       console.log(`responses: ${JSON.stringify(data, null, 2)}`);
       setResponses((prev) => ({
         ...prev,
-        client_id: data[0].progress.client_id || "",
+        client_id: clientId,
       }));
 
       setPipelineData(data);
@@ -148,6 +155,7 @@ export default function SurveyPage() {
       let surveyData: Record<string, any> = {
         ...responses,
         user_id: user.id,
+        client_id: clientId,
       };
 
       const followUpMap = [
@@ -180,6 +188,8 @@ export default function SurveyPage() {
       });
       surveyData.user_id = user.id;
 
+      console.log(JSON.stringify(surveyData, null, 2));
+
       const response = await fetch("/api/surveys", {
         method: "POST",
         headers: {
@@ -199,8 +209,6 @@ export default function SurveyPage() {
         throw new Error("Survey response ID not returned from API");
       }
 
-      await advancePipelineStep(user.id, 1, 2);
-
       toast({
         title: "Survey submitted",
         description: "Thank you for completing the survey.",
@@ -219,20 +227,22 @@ export default function SurveyPage() {
         const errorData = await analyzeRes.json();
         throw new Error(errorData.error || "Failed to analyze survey response");
       }
-      const aiGeneratedResponse = await analyzeRes.json();
+      const analyzedSurveyResponse = await analyzeRes.json();
 
-      console.log(aiGeneratedResponse);
+      console.log(analyzedSurveyResponse);
 
-      const insertRes = await fetch(
-        `/api/surveys/${surveyResponse.data.id}/analyze`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(aiGeneratedResponse),
-        }
-      );
+      const insertRes = await fetch(`/api/surveys/${surveyResponse.data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analyzedSurveyResponse: analyzedSurveyResponse,
+        }),
+      });
 
-      console.log(insertRes);
+      if (!insertRes.ok) {
+        const errorData = await insertRes.json();
+        throw new Error(errorData.error || "Failed to update survey response");
+      }
 
       // TODO: Uncomment this when we have the workflow insert endpoint
       // const insertRes = await fetch("/api/workflows/insert", {
@@ -247,7 +257,8 @@ export default function SurveyPage() {
       //   );
       // }
 
-      router.push("/survey/thank-you");
+      router.refresh();
+      router.push("/");
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast({
