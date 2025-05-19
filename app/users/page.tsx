@@ -13,11 +13,13 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
 
     async function fetchData() {
+      setLoading(true);
       if (user?.role === "admin") {
         const { data: allUsers } = await supabase.from("profile").select("*");
         const { data: allClients } = await supabase.from("client").select("*");
@@ -64,6 +66,7 @@ export default function UsersPage() {
         setClients(allClients || []);
         setShowAddUser(false);
       }
+      setLoading(false);
     }
 
     fetchData();
@@ -74,6 +77,15 @@ export default function UsersPage() {
     if (user?.role === "se" && rowUser.role === "client") return true;
     return false;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div>
