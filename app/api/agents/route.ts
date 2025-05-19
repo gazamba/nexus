@@ -1,5 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createAgent, listAgents } from "@/lib/services/agent-service";
+import {
+  createAgent,
+  listAgents,
+  getAgent,
+} from "@/lib/services/agent-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -17,12 +21,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    if (
-      !body.name ||
-      !body.clientId ||
-      !body.channels ||
-      body.channels.length === 0
-    ) {
+    if (!body.name || !body.description) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -81,10 +80,9 @@ export async function GET(request: NextRequest) {
       .eq("user_id", userId)
       .single();
 
-    console.log(userRole);
-
     const url = new URL(request.url);
     const clientId = url.searchParams.get("clientId");
+    const agentId = url.searchParams.get("agentId");
 
     if (userRole?.role !== "admin" && !clientId) {
       return NextResponse.json(
@@ -108,8 +106,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const agents = await listAgents(clientId || undefined);
+    if (agentId) {
+      const agent = await getAgent(agentId);
+      if (!agent) {
+        return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+      }
+      return NextResponse.json(agent);
+    }
 
+    const agents = await listAgents(clientId || undefined);
     return NextResponse.json(agents);
   } catch (error) {
     console.error("Error fetching agents:", error);

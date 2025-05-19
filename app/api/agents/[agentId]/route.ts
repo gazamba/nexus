@@ -8,7 +8,7 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
 
     const agent = await getAgent(agentId);
     if (!agent) {
@@ -41,7 +41,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -55,7 +55,7 @@ export async function PUT(
       );
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
     const body = await request.json();
 
     if (!body) {
@@ -98,7 +98,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -112,7 +112,7 @@ export async function DELETE(
       );
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
 
     const success = await deleteAgent(agentId);
     if (!success) {

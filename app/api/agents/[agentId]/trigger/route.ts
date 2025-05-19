@@ -18,7 +18,7 @@ export async function POST(
       );
     }
 
-    const agentId = params.agentId;
+    const agentId = await params.agentId;
     const body = await request.json();
 
     if (!body.channel || !body.payload) {
