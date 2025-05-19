@@ -118,18 +118,38 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role?: UserRole;
   avatar?: string;
+  full_name?: string;
+  phone?: string;
+  billing?: boolean;
+  admin?: boolean;
+  notes?: string;
+  department?: string;
+  exceptions?: string[];
+  access?: string[];
+  cost_rate?: number;
+  bill_rate?: number;
+  assigned_clients?: string[];
 }
 
 export interface Client {
   id: string;
   name: string;
-  url: string | null;
-  created_at: string | null;
-  active: boolean;
-  industry: string | null;
-  status: string | null;
+  url?: string | null;
+  created_at?: string | null;
+  active?: boolean;
+  industry?: string | null;
+  status?: string | null;
+  contractId?: string;
+  contractStart?: string;
+  workflows?: number;
+  nodes?: number;
+  executions?: number;
+  exceptions?: number;
+  revenue?: string;
+  timeSaved?: string;
+  moneySaved?: string;
 }
 
 export interface CredentialField {
@@ -151,15 +171,20 @@ export interface PipelineStep {
   id: number;
   step_name: string;
   step_order: number;
+  created_at?: string;
+  updated_at?: string;
+  progress?: PipelineProgress;
 }
 
 export interface PipelineProgress {
   id: number;
   client_id: string;
-  step_id: number;
   user_id: string;
+  step_id: number;
+  completed_at?: string;
   status: "pending" | "completed" | "in-progress";
-  completed_at: string;
+  created_at?: string;
+  updated_at?: string;
   pipeline_group_id?: string;
 }
 
