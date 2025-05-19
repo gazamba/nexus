@@ -21,7 +21,8 @@ export async function GET(
       );
     }
 
-    const surveyId = await params.surveyId;
+    const resolvedParams = await params;
+    const surveyId = resolvedParams.surveyId;
 
     if (!surveyId) {
       return NextResponse.json({ error: "Missing survey ID" }, { status: 400 });
@@ -47,7 +48,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { surveyId: string } }
+  { params }: { params: Promise<{ surveyId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -61,7 +62,9 @@ export async function PATCH(
       );
     }
 
-    const surveyId = await params.surveyId;
+    const resolvedParams = await params;
+    const surveyId = resolvedParams.surveyId;
+
     console.log(`surveyId: ${surveyId}`);
     if (!surveyId) {
       return NextResponse.json({ error: "Missing survey ID" }, { status: 400 });
