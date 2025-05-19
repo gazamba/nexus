@@ -2,7 +2,9 @@ import { SurveyResponse } from "@/types/types";
 import { createClient } from "../../utils/supabase/client";
 const supabase = createClient();
 
-export const createSurveyResponse = async (surveyResponse: SurveyResponse) => {
+export const createSurveyResponse = async (
+  surveyResponse: SurveyResponse & { pipeline_group_id?: string }
+) => {
   const { data, error } = await supabase
     .from("survey_response")
     .insert([surveyResponse])

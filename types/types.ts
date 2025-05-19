@@ -96,6 +96,7 @@ export interface SurveyResponse {
   priority: string;
   user_id: string;
   client_id: string;
+  pipeline_group_id?: string;
 }
 
 export interface WorkflowDoc {
@@ -159,6 +160,7 @@ export interface PipelineProgress {
   user_id: string;
   status: "pending" | "completed" | "in-progress";
   completed_at: string;
+  pipeline_group_id?: string;
 }
 
 export interface NodeListItem {

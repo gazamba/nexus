@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 interface SurveyBannerProps {
-  isInitialSurveyCompleted: boolean;
+  isPipelineFullyCompleted: boolean;
 }
 
-export function SurveyBanner({ isInitialSurveyCompleted }: SurveyBannerProps) {
+export function SurveyBanner({ isPipelineFullyCompleted }: SurveyBannerProps) {
   return (
     <div className="mb-6 bg-muted p-4 rounded-lg border">
       <div className="flex flex-col md:flex-row items-center justify-between">
@@ -19,12 +19,12 @@ export function SurveyBanner({ isInitialSurveyCompleted }: SurveyBannerProps) {
             Complete our workflow survey to help us automate your processes
           </p>
         </div>
-        {isInitialSurveyCompleted ? (
-          <Button disabled>Pipeline is already in progress</Button>
-        ) : (
+        {isPipelineFullyCompleted ? (
           <Link href="/survey">
             <Button>Start Workflow Survey</Button>
           </Link>
+        ) : (
+          <Button disabled>Survey Completed</Button>
         )}
       </div>
     </div>

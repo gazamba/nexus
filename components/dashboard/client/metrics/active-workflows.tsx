@@ -13,7 +13,7 @@ export function ActiveWorkflows({ count }: ActiveWorkflowsProps) {
     <MetricCard title="Active Workflows">
       <div className="text-2xl font-bold mb-2">{count}</div>
       <Link
-        href="/workflows"
+        href="/workflow-roi"
         className="text-primary text-sm flex items-center"
       >
         View workflows <ArrowRight className="h-3 w-3 ml-1" />

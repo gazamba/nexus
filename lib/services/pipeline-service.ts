@@ -87,7 +87,8 @@ export async function getPipelineDataByClient(clientId: string) {
 
 export async function createNextPipelineProgress(
   userId: string,
-  clientId: string
+  clientId: string,
+  pipelineGroupId: string
 ) {
   const supabase = createClient();
 
@@ -103,7 +104,8 @@ export async function createNextPipelineProgress(
   const { data: progress, error: progressError } = await supabase
     .from("pipeline_progress")
     .select("*")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .eq("pipeline_group_id", pipelineGroupId);
 
   if (progressError) {
     throw new Error("Could not fetch pipeline progress");
@@ -112,7 +114,6 @@ export async function createNextPipelineProgress(
   const currentStep = progress.find((p) => p.status === "in-progress");
 
   if (currentStep) {
-    // If current step is the final step (step_id === 8), just mark as completed and return
     if (currentStep.step_id === 8) {
       const { error: updateError } = await supabase
         .from("pipeline_progress")
@@ -120,7 +121,8 @@ export async function createNextPipelineProgress(
           status: "completed",
           completed_at: new Date().toISOString(),
         })
-        .eq("id", currentStep.id);
+        .eq("id", currentStep.id)
+        .eq("pipeline_group_id", pipelineGroupId);
 
       if (updateError) {
         throw new Error(
@@ -135,7 +137,8 @@ export async function createNextPipelineProgress(
         status: "completed",
         completed_at: new Date().toISOString(),
       })
-      .eq("id", currentStep.id);
+      .eq("id", currentStep.id)
+      .eq("pipeline_group_id", pipelineGroupId);
 
     if (updateError) {
       throw new Error(
@@ -165,6 +168,7 @@ export async function createNextPipelineProgress(
         client_id: clientId,
         step_id: nextStep.id,
         status: "in-progress",
+        pipeline_group_id: pipelineGroupId,
       },
     ])
     .select()
