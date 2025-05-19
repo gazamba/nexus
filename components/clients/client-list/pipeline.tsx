@@ -52,7 +52,7 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
               body: JSON.stringify(surveyResponse.analyzed_survey_response),
             });
             console.log("Insert workflows response:", insertRes);
-            // Find the Factory build initiated step
+
             const factoryStep = localPipeline.find(
               (s) => s.step_name === "Factory build initiated"
             );

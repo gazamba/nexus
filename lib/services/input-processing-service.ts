@@ -5,33 +5,6 @@ const openai = new OpenAI();
 
 const supabase = createClient();
 
-export const insertAnalyzedSurveyResponse = async (
-  analyzedSurveyResponse: any,
-  surveyId: string
-): Promise<void> => {
-  try {
-    const { data, error } = await supabase
-      .from("survey_response")
-      .update({ analyzed_survey_response: analyzedSurveyResponse })
-      .eq("id", surveyId)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(
-        `Failed to insert analyzed survey response: ${error.message}`
-      );
-    }
-
-    console.log(`Inserted/Updated analyzed survey response: ${data.id}`);
-  } catch (error: any) {
-    console.error("Insertion failed:", error.message);
-    throw new Error(
-      `Failed to insert analyzed survey response: ${error.message}`
-    );
-  }
-};
-
 export const insertWorkflowsAndNodesFromSurveyResponse = async (
   analyzedSurveyResponse: any
 ): Promise<void> => {
