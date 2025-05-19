@@ -58,7 +58,7 @@ export function DashboardOverview() {
           selectedPeriod={selectedPeriod}
           onPeriodChange={setSelectedPeriod}
         />
-        <MetricCards />
+        <MetricCards selectedPeriod={selectedPeriod} />
         <ClientTable clients={clientData} />
       </main>
     </div>

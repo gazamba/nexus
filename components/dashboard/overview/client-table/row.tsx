@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ExternalLinkIcon } from "lucide-react";
 import { TableCell } from "./cell";
+import { useRouter } from "next/navigation";
 
 interface ClientDashboard {
   id: string;
@@ -23,6 +24,7 @@ interface ClientTableRowProps {
 }
 
 export function ClientTableRow({ client }: ClientTableRowProps) {
+  const router = useRouter();
   return (
     <tr className="border-t hover:bg-muted/20">
       <TableCell className="text-blue-500">
@@ -35,13 +37,13 @@ export function ClientTableRow({ client }: ClientTableRowProps) {
         </Link>
       </TableCell>
       <TableCell>
-        <Link
-          href={`/contracts/${client.contractId}`}
-          className="hover:underline text-blue-500 flex items-center"
+        <span
+          className="hover:underline text-blue-500 cursor-pointer flex items-center"
+          onClick={() => router.push(`/clients/${client.id}`)}
         >
           {client.contractStart}
           <ExternalLinkIcon className="h-3 w-3 ml-1 opacity-50" />
-        </Link>
+        </span>
       </TableCell>
       <TableCell>
         <Link

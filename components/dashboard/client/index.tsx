@@ -20,19 +20,14 @@ export function ClientDashboard() {
   useEffect(() => {
     if (!user?.id) return;
     setLoading(true);
-    const fetchClientId = async () => {
+    const fetchAll = async () => {
       const clientId = await getClientId(user.id);
       setClientId(clientId);
-      setLoading(false);
-    };
-
-    const fetchPipelineData = async () => {
       const { data } = await getPipelineData(user.id);
       setPipelineData(data);
       setLoading(false);
     };
-    fetchClientId();
-    fetchPipelineData();
+    fetchAll();
   }, [user?.id]);
 
   const isInitialSurveyCompleted =

@@ -24,11 +24,12 @@ export interface Document {
 }
 
 export interface PipelineStep {
+  id: number;
   step_name: string;
-  progress?: {
-    status: string;
-    completed_at?: string;
-  };
+  step_order: number;
+  created_at?: string;
+  updated_at?: string;
+  progress?: PipelineProgress;
 }
 
 export interface Workflow {
@@ -44,4 +45,15 @@ export interface ClientProfile {
   solutions_engineer_profile: Engineer[];
   client_user_profile: User[];
   document: Document[];
+}
+
+export interface PipelineProgress {
+  id: number;
+  client_id: string;
+  user_id: string;
+  step_id: number;
+  completed_at?: string;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
 }
