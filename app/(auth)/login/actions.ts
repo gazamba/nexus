@@ -24,6 +24,10 @@ export async function signup(formData: FormData) {
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const role = formData.get("role") as string;
+  const phone = formData.get("phone") as string;
+  const isBilling = formData.get("isBilling") === "true";
+  const isAdmin = formData.get("isAdmin") === "true";
+  const notes = formData.get("notes") as string;
 
   const { data, error: signUpError } = await supabase.auth.signUp({
     email,
@@ -34,6 +38,10 @@ export async function signup(formData: FormData) {
         lastName,
         avatar_initial: firstName[0],
         role,
+        phone,
+        isBilling,
+        isAdmin,
+        notes,
       },
     },
   });
@@ -48,6 +56,10 @@ export async function signup(formData: FormData) {
       full_name: `${firstName} ${lastName}`,
       avatar_initial: firstName[0],
       role: role,
+      phone: phone,
+      is_billing: isBilling,
+      is_admin: isAdmin,
+      notes: notes,
     });
     if (profileError) {
       console.error("Error creating profile:", {
@@ -59,6 +71,7 @@ export async function signup(formData: FormData) {
       return profileError;
     } else {
       console.log("Profile created successfully:", data);
+      return null;
     }
   }
 }

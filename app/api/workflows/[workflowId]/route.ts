@@ -72,7 +72,6 @@ export async function PUT(
       name: body.name,
       description: body.description,
       nodes: body.nodes,
-      triggers: body.triggers,
       status: body.status,
     });
 

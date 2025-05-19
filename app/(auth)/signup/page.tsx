@@ -1,7 +1,7 @@
 "use client";
 
 import { signup } from "../login/actions";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -30,6 +31,10 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<"admin" | "client" | "se">("client");
+  const [phone, setPhone] = useState("");
+  const [isBilling, setIsBilling] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -46,6 +51,10 @@ export default function SignupPage() {
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
       formData.append("role", role);
+      formData.append("phone", phone);
+      formData.append("isBilling", isBilling.toString());
+      formData.append("isAdmin", isAdmin.toString());
+      formData.append("notes", notes);
 
       const error = await signup(formData);
 
@@ -54,7 +63,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/login");
+      router.replace("/login");
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
       console.error(err);
@@ -139,6 +148,41 @@ export default function SignupPage() {
                   <SelectItem value="se">Solutions Engineer</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Input
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Additional information"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isBilling"
+                checked={isBilling}
+                onCheckedChange={(checked) => setIsBilling(checked as boolean)}
+              />
+              <Label htmlFor="isBilling">Billing Access</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isAdmin"
+                checked={isAdmin}
+                onCheckedChange={(checked) => setIsAdmin(checked as boolean)}
+              />
+              <Label htmlFor="isAdmin">Admin Access</Label>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

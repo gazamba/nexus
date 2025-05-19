@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createWorkflow, listWorkflows } from "@/lib/services/workflow-service";
-import { generateWorkflowFromSurveyResponse } from "@/lib/services/input-processing-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -18,39 +17,28 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    if (!body.name || !body.description || !body.clientId) {
+    if (!body.name || !body.description || !body.client_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    if (body.surveyResponseIds || body.workflowDocIds) {
-      const result = await generateWorkflowFromSurveyResponse(
-        body.clientId,
-        userId,
-        {
-          name: body.name,
-          description: body.description,
-          surveyResponseIds: body.surveyResponseIds,
-          workflowDocIds: body.workflowDocIds,
-        }
-      );
-
-      if (result.error) {
-        return NextResponse.json({ error: result.error }, { status: 400 });
-      }
-
-      return NextResponse.json({ id: result.workflowId });
-    }
-
     const workflowId = await createWorkflow({
       name: body.name,
       description: body.description,
-      clientId: body.clientId,
-      createdBy: userId,
+      client_id: body.client_id,
+      status: body.status || "",
+      department: body.department || "",
+      executions: body.executions || [],
+      exceptions: body.exceptions || [],
+      timesaved: body.timesaved || [],
+      costsaved: body.costsaved || [],
       nodes: body.nodes || [],
-      triggers: body.triggers || [],
+      schedule_days: body.schedule_days || [],
+      schedule_months: body.schedule_months || [],
+      schedule_hours: body.schedule_hours || [],
+      trigger_option: body.trigger_option || "",
     });
 
     if (!workflowId) {
