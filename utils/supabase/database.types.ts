@@ -412,6 +412,7 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           id: number
+          pipeline_group_id: string | null
           status: Database["public"]["Enums"]["status"]
           step_id: number
           updated_at: string | null
@@ -422,6 +423,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: number
+          pipeline_group_id?: string | null
           status?: Database["public"]["Enums"]["status"]
           step_id: number
           updated_at?: string | null
@@ -432,6 +434,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           id?: number
+          pipeline_group_id?: string | null
           status?: Database["public"]["Enums"]["status"]
           step_id?: number
           updated_at?: string | null
@@ -563,6 +566,7 @@ export type Database = {
           id: string
           outputs: string[] | null
           pain_points: string[] | null
+          pipeline_group_id: string | null
           priority: string | null
           systems: string[] | null
           triggers: string[] | null
@@ -581,6 +585,7 @@ export type Database = {
           id?: string
           outputs?: string[] | null
           pain_points?: string[] | null
+          pipeline_group_id?: string | null
           priority?: string | null
           systems?: string[] | null
           triggers?: string[] | null
@@ -599,6 +604,7 @@ export type Database = {
           id?: string
           outputs?: string[] | null
           pain_points?: string[] | null
+          pipeline_group_id?: string | null
           priority?: string | null
           systems?: string[] | null
           triggers?: string[] | null
