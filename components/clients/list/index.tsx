@@ -28,7 +28,7 @@ export function ClientsList() {
   const filteredClients = useMemo(
     () =>
       clients.filter((client) =>
-        client.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (client.name?.toLowerCase() || "").includes(searchQuery.toLowerCase())
       ),
     [clients, searchQuery]
   );

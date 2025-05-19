@@ -8,7 +8,7 @@ import {
   createNextPipelineProgress,
   getPipelineDataByClient,
 } from "@/lib/services/pipeline-service";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -17,14 +17,83 @@ interface PipelineProps {
   clientId: string;
 }
 
+function hasUserId(progress: any): progress is { user_id: string } {
+  return (
+    progress &&
+    typeof progress.user_id === "string" &&
+    Object.keys(progress).length > 1
+  );
+}
+
 export function Pipeline({ pipelineData, clientId }: PipelineProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [localPipeline, setLocalPipeline] = useState(pipelineData);
   const [isLoading, setIsLoading] = useState(false);
 
-  const currentStepIndex = localPipeline.findIndex(
+  // Group progress by pipeline_group_id
+  const pipelineGroups: Record<string, PipelineStep[]> = {};
+  for (const step of pipelineData) {
+    const groupId = step.progress?.pipeline_group_id;
+    if (!groupId) continue;
+    if (!pipelineGroups[groupId]) pipelineGroups[groupId] = [];
+    pipelineGroups[groupId].push(step);
+  }
+
+  // Find the current pipeline group (active or most recent)
+  let currentGroupId: string | undefined = undefined;
+  let currentGroupProgress: Record<number, PipelineStep> = {};
+  for (const groupId in pipelineGroups) {
+    const steps = pipelineGroups[groupId];
+    const lastStep = steps.reduce((prev, curr) =>
+      prev.step_order > curr.step_order ? prev : curr
+    );
+    if (lastStep?.progress?.status !== "completed") {
+      currentGroupId = groupId;
+      steps.forEach((s) => {
+        if (s.progress) currentGroupProgress[s.id] = s;
+      });
+      break;
+    }
+  }
+  // If no in-progress, use the most recent completed
+  if (!currentGroupId) {
+    let latestCreatedAt = 0;
+    for (const groupId in pipelineGroups) {
+      const steps = pipelineGroups[groupId];
+      const lastStep = steps.reduce((prev, curr) =>
+        prev.step_order > curr.step_order ? prev : curr
+      );
+      const createdAt = new Date(lastStep?.progress?.created_at || 0).getTime();
+      if (createdAt > latestCreatedAt) {
+        latestCreatedAt = createdAt;
+        currentGroupId = groupId;
+        steps.forEach((s) => {
+          if (s.progress) currentGroupProgress[s.id] = s;
+        });
+      }
+    }
+  }
+
+  // Fallback: if no group, show nothing
+  if (!currentGroupId) {
+    return <div className="p-4">No pipeline data available.</div>;
+  }
+
+  // Build the full step list (from pipelineData, which should include all steps)
+  const allSteps = [...pipelineData]
+    .filter((step, idx, arr) => arr.findIndex((s) => s.id === step.id) === idx)
+    .sort((a, b) => a.step_order - b.step_order);
+
+  // Merge progress into all steps for the current group
+  const mergedSteps = allSteps.map((step) => {
+    const progressStep = currentGroupProgress[step.id];
+    return progressStep
+      ? progressStep
+      : { ...step, progress: { status: "pending" } };
+  });
+
+  const currentStepIndex = mergedSteps.findIndex(
     (step) => step.progress?.status !== PIPELINE_STATUS.COMPLETED
   );
   const isAdminOrSE = user?.role === "admin" || user?.role === "se";
@@ -33,8 +102,12 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     if (!user || currentStepIndex === -1) return;
     setIsLoading(true);
     try {
-      const step = localPipeline[currentStepIndex];
-      const pipelineGroupId = step.progress?.pipeline_group_id;
+      const step = mergedSteps[currentStepIndex];
+      const pipelineGroupId =
+        (step.progress &&
+          "pipeline_group_id" in step.progress &&
+          step.progress.pipeline_group_id) ||
+        currentGroupId;
       if (!pipelineGroupId) {
         throw new Error("Missing pipeline_group_id for this step");
       }
@@ -42,8 +115,12 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
 
       if (step?.step_name === "Credentials collected") {
         console.log("Processing 'Credentials collected' step...");
+        const userId =
+          step.progress && hasUserId(step.progress) && step.progress.user_id
+            ? step.progress.user_id
+            : user?.id || "";
         const res = await fetch(
-          `/api/surveys?client_id=${clientId}&user_id=${step.progress?.user_id}`
+          `/api/surveys?client_id=${clientId}&user_id=${userId}`
         );
         console.log("Survey API response:", res);
         if (res.ok) {
@@ -57,13 +134,22 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
             });
             console.log("Insert workflows response:", insertRes);
 
-            const factoryStep = localPipeline.find(
+            const factoryStep = mergedSteps.find(
               (s) => s.step_name === "Factory build initiated"
             );
             console.log("Factory step:", factoryStep);
             if (factoryStep && factoryStep.progress === null) {
+              let userIdForStep = user?.id || "";
+              if (
+                step.progress &&
+                step.progress.status !== "pending" &&
+                hasUserId(step.progress) &&
+                step.progress.user_id
+              ) {
+                userIdForStep = step.progress.user_id;
+              }
               await createNextPipelineProgress(
-                step.progress?.user_id || "",
+                userIdForStep,
                 clientId,
                 pipelineGroupId
               );
@@ -85,14 +171,43 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
         }
       }
 
+      let userIdForStep = user?.id || "";
+      if (
+        step.progress &&
+        step.progress.status !== "pending" &&
+        hasUserId(step.progress) &&
+        step.progress.user_id
+      ) {
+        userIdForStep = step.progress.user_id;
+      }
       await createNextPipelineProgress(
-        step.progress?.user_id || "",
+        userIdForStep,
         clientId,
         pipelineGroupId
       );
 
       const { data } = await getPipelineDataByClient(clientId);
-      setLocalPipeline(data);
+      // Filter again for the current group
+      const updatedGroups: Record<string, PipelineStep[]> = {};
+      for (const step of data) {
+        const groupId = step.progress?.pipeline_group_id;
+        if (!groupId) continue;
+        if (!updatedGroups[groupId]) updatedGroups[groupId] = [];
+        updatedGroups[groupId].push(step);
+      }
+      let updatedCurrentGroupProgress: Record<number, PipelineStep> = {};
+      if (updatedGroups[pipelineGroupId]) {
+        updatedGroups[pipelineGroupId].forEach((s) => {
+          if (s.progress) updatedCurrentGroupProgress[s.id] = s;
+        });
+      }
+      const updatedMergedSteps = allSteps.map((step) => {
+        const progressStep = updatedCurrentGroupProgress[step.id];
+        return progressStep
+          ? progressStep
+          : { ...step, progress: { status: "pending" } };
+      });
+      setLocalPipeline(updatedMergedSteps);
     } catch (error) {
       console.error("Error marking step as complete:", error);
     } finally {
@@ -100,13 +215,18 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     }
   };
 
+  // Use localPipeline if set, otherwise mergedSteps
+  const [localPipeline, setLocalPipeline] = useState(mergedSteps);
+  const stepsToRender =
+    localPipeline.length === mergedSteps.length ? localPipeline : mergedSteps;
+
   return (
     <div className="border rounded-md overflow-hidden">
       <div className="p-4 border-b">
         <h3 className="font-medium">Pipeline Progress</h3>
       </div>
       <div className="p-4 space-y-4">
-        {localPipeline.map((step, index) => {
+        {stepsToRender.map((step, index) => {
           let status = step.progress?.status || PIPELINE_STATUS.PENDING;
           if (
             step.step_name === "Discovery: Initial Survey" &&
@@ -114,7 +234,10 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
           ) {
             status = PIPELINE_STATUS.IN_PROGRESS;
           }
-          const completedAt = step.progress?.completed_at;
+          const completedAt =
+            step.progress && "completed_at" in step.progress
+              ? step.progress.completed_at
+              : undefined;
 
           return (
             <div key={index} className="flex items-start gap-3">
