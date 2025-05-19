@@ -17,16 +17,19 @@ export function Engineers({ engineers }: EngineersProps) {
         {engineers.map((engineer, index) => (
           <div key={index} className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src={engineer.avatar} alt={engineer.name} />
+              <AvatarImage
+                src={engineer.avatar_initial}
+                alt={engineer.full_name}
+              />
               <AvatarFallback>
-                {engineer.name
+                {engineer.full_name
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium">{engineer.name}</div>
+              <div className="font-medium">{engineer.full_name}</div>
               <div className="text-sm text-muted-foreground">
                 {engineer.role}
               </div>

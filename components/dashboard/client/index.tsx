@@ -4,25 +4,34 @@ import { useAuth } from "@/contexts/auth-provider";
 import { useEffect, useState } from "react";
 import { getPipelineData } from "@/lib/services/pipeline-service";
 import { SurveyBanner } from "./survey-banner";
-import { PipelineProgress } from "./pipeline-progress";
+import { Pipeline } from "@/components/clients/client-list/pipeline";
 import { TimeSaved } from "./metrics/time-saved";
 import { MoneySaved } from "./metrics/money-saved";
 import { ActiveWorkflows } from "./metrics/active-workflows";
 import { UserCard } from "./user-card";
+import { getClientId } from "@/lib/services/client-service";
 
 export function ClientDashboard() {
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [clientId, setClientId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!user?.id) return;
     setLoading(true);
+    const fetchClientId = async () => {
+      const clientId = await getClientId(user.id);
+      setClientId(clientId);
+      setLoading(false);
+    };
+
     const fetchPipelineData = async () => {
       const { data } = await getPipelineData(user.id);
       setPipelineData(data);
       setLoading(false);
     };
+    fetchClientId();
     fetchPipelineData();
   }, [user?.id]);
 
@@ -45,7 +54,7 @@ export function ClientDashboard() {
         <SurveyBanner isInitialSurveyCompleted={isInitialSurveyCompleted} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <PipelineProgress steps={pipelineData} />
+          <Pipeline pipelineData={pipelineData} clientId={clientId || ""} />
 
           <div className="space-y-6">
             <TimeSaved lastWeek="24.5 hrs" allTime="168.2 hrs" />

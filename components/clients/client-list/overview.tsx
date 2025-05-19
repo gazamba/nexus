@@ -15,12 +15,12 @@ export function Overview({ clientProfile, pipelineData }: OverviewProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-6">
-        <Engineers engineers={clientProfile.engineers} />
-        <Users users={clientProfile.users} />
-        <Documents documents={clientProfile.documents} />
+        <Engineers engineers={clientProfile.solutions_engineer_profile} />
+        <Users users={clientProfile.client_user_profile} />
+        <Documents documents={clientProfile.document} />
       </div>
       <div>
-        <Pipeline pipelineData={pipelineData} />
+        <Pipeline pipelineData={pipelineData} clientId={clientProfile.id} />
       </div>
     </div>
   );

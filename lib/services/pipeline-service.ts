@@ -32,13 +32,12 @@ export async function getPipelineData(userId: string) {
   return { data: stepsWithProgress };
 }
 
-const supabase = createClient();
-
 export const advancePipelineStep = async (
   userId: string,
   currentStep: number,
   nextStep: number
 ) => {
+  const supabase = createClient();
   const { error: completeError } = await supabase
     .from("pipeline_progress")
     .update({ status: "completed" })
@@ -84,4 +83,83 @@ export async function getPipelineDataByClient(clientId: string) {
   }));
 
   return { data: stepsWithProgress };
+}
+
+export async function createNextPipelineProgress(
+  userId: string,
+  clientId: string
+) {
+  const supabase = createClient();
+
+  // First, get all steps and current progress
+  const { data: steps, error: stepsError } = await supabase
+    .from("pipeline_steps")
+    .select("*")
+    .order("step_order", { ascending: true });
+
+  if (stepsError || !steps) {
+    throw new Error("Could not fetch pipeline steps");
+  }
+
+  const { data: progress, error: progressError } = await supabase
+    .from("pipeline_progress")
+    .select("*")
+    .eq("user_id", userId);
+
+  if (progressError) {
+    throw new Error("Could not fetch pipeline progress");
+  }
+
+  // Find the current in-progress step
+  const currentStep = progress.find((p) => p.status === "in-progress");
+  if (!currentStep) {
+    throw new Error("No step is currently in progress");
+  }
+
+  // Mark current step as completed
+  const { error: updateError } = await supabase
+    .from("pipeline_progress")
+    .update({
+      status: "completed",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", currentStep.id);
+
+  if (updateError) {
+    throw new Error(
+      `Could not mark current step as completed: ${updateError.message}`
+    );
+  }
+
+  // Find the next step
+  const completedStepNumbers = new Set(progress.map((p) => p.step_id));
+  const nextStep = steps.find(
+    (step) => !completedStepNumbers.has(step.step_order)
+  );
+
+  if (!nextStep) {
+    throw new Error("All steps are already in progress or completed");
+  }
+
+  // Create the next step
+  const { data: newProgress, error: insertError } = await supabase
+    .from("pipeline_progress")
+    .insert([
+      {
+        user_id: userId,
+        client_id: clientId,
+        step_id: nextStep.id,
+        status: "in-progress",
+      },
+    ])
+    .select()
+    .single();
+
+  if (insertError) {
+    throw new Error(
+      `Could not create new pipeline progress step: ${insertError.message}`
+    );
+  }
+
+  return newProgress;
 }

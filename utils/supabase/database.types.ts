@@ -12,6 +12,7 @@ export type Database = {
       agent: {
         Row: {
           capabilities: string[] | null
+          created_at: string | null
           description: string | null
           id: string
           ispublic: boolean | null
@@ -23,9 +24,11 @@ export type Database = {
           systemprompt: string | null
           temperature: number | null
           type: string | null
+          updated_at: string | null
         }
         Insert: {
           capabilities?: string[] | null
+          created_at?: string | null
           description?: string | null
           id?: string
           ispublic?: boolean | null
@@ -37,9 +40,11 @@ export type Database = {
           systemprompt?: string | null
           temperature?: number | null
           type?: string | null
+          updated_at?: string | null
         }
         Update: {
           capabilities?: string[] | null
+          created_at?: string | null
           description?: string | null
           id?: string
           ispublic?: boolean | null
@@ -51,6 +56,7 @@ export type Database = {
           systemprompt?: string | null
           temperature?: number | null
           type?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -88,14 +94,20 @@ export type Database = {
         Row: {
           client_id: string
           client_user_id: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           client_id: string
           client_user_id: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           client_id?: string
           client_user_id?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -138,20 +150,26 @@ export type Database = {
       }
       credential_field: {
         Row: {
+          created_at: string | null
           credential_id: string | null
           id: string
+          updated_at: string | null
           variable_name: string
           vault_key: string
         }
         Insert: {
+          created_at?: string | null
           credential_id?: string | null
           id?: string
+          updated_at?: string | null
           variable_name: string
           vault_key: string
         }
         Update: {
+          created_at?: string | null
           credential_id?: string | null
           id?: string
+          updated_at?: string | null
           variable_name?: string
           vault_key?: string
         }
@@ -197,20 +215,26 @@ export type Database = {
       document: {
         Row: {
           client_id: string | null
+          created_at: string | null
           id: string
           title: string
+          updated_at: string | null
           url: string
         }
         Insert: {
           client_id?: string | null
+          created_at?: string | null
           id?: string
           title: string
+          updated_at?: string | null
           url: string
         }
         Update: {
           client_id?: string | null
+          created_at?: string | null
           id?: string
           title?: string
+          updated_at?: string | null
           url?: string
         }
         Relationships: [
@@ -226,26 +250,32 @@ export type Database = {
       node: {
         Row: {
           code: string | null
+          created_at: string | null
           description: string | null
           id: string
           name: string
           type: string
+          updated_at: string | null
           workflow_id: string
         }
         Insert: {
           code?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           name: string
           type: string
+          updated_at?: string | null
           workflow_id: string
         }
         Update: {
           code?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           name?: string
           type?: string
+          updated_at?: string | null
           workflow_id?: string
         }
         Relationships: [
@@ -260,19 +290,25 @@ export type Database = {
       }
       node_credential: {
         Row: {
+          created_at: string | null
           credential_id: string
           id: string
           node_id: string
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           credential_id: string
           id?: string
           node_id: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           credential_id?: string
           id?: string
           node_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -293,28 +329,34 @@ export type Database = {
       }
       node_input: {
         Row: {
+          created_at: string | null
           description: string | null
           id: string
           name: string
           node_id: string
           required: boolean
           type: string
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           description?: string | null
           id?: string
           name: string
           node_id: string
           required: boolean
           type: string
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           description?: string | null
           id?: string
           name?: string
           node_id?: string
           required?: boolean
           type?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -328,24 +370,30 @@ export type Database = {
       }
       notification_log: {
         Row: {
+          created_at: string | null
           exception_id: string
           id: string
           method: string
           notified_at: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          created_at?: string | null
           exception_id: string
           id?: string
           method: string
           notified_at?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          created_at?: string | null
           exception_id?: string
           id?: string
           method?: string
           notified_at?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -362,25 +410,31 @@ export type Database = {
         Row: {
           client_id: string
           completed_at: string | null
+          created_at: string | null
           id: number
           status: Database["public"]["Enums"]["status"]
           step_id: number
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           client_id: string
           completed_at?: string | null
+          created_at?: string | null
           id?: number
           status?: Database["public"]["Enums"]["status"]
           step_id: number
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           client_id?: string
           completed_at?: string | null
+          created_at?: string | null
           id?: number
           status?: Database["public"]["Enums"]["status"]
           step_id?: number
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -402,19 +456,25 @@ export type Database = {
       }
       pipeline_steps: {
         Row: {
+          created_at: string | null
           id: number
           step_name: string
           step_order: number
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           id?: number
           step_name: string
           step_order: number
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           id?: number
           step_name?: string
           step_order?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -466,15 +526,21 @@ export type Database = {
       solutions_engineer_assignment: {
         Row: {
           client_id: string
+          created_at: string | null
           se_user_id: string
+          updated_at: string | null
         }
         Insert: {
           client_id: string
+          created_at?: string | null
           se_user_id: string
+          updated_at?: string | null
         }
         Update: {
           client_id?: string
+          created_at?: string | null
           se_user_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -486,10 +552,13 @@ export type Database = {
           },
         ]
       }
-      survey: {
+      survey_response: {
         Row: {
           agent_interaction: string[] | null
+          analyzed_survey_response: Json | null
           api_access: string | null
+          client_id: string | null
+          created_at: string | null
           current_process: string | null
           id: string
           outputs: string[] | null
@@ -497,13 +566,17 @@ export type Database = {
           priority: string | null
           systems: string[] | null
           triggers: string[] | null
+          updated_at: string | null
           user_id: string | null
           volume: string | null
           workflow_type: string | null
         }
         Insert: {
           agent_interaction?: string[] | null
+          analyzed_survey_response?: Json | null
           api_access?: string | null
+          client_id?: string | null
+          created_at?: string | null
           current_process?: string | null
           id?: string
           outputs?: string[] | null
@@ -511,13 +584,17 @@ export type Database = {
           priority?: string | null
           systems?: string[] | null
           triggers?: string[] | null
+          updated_at?: string | null
           user_id?: string | null
           volume?: string | null
           workflow_type?: string | null
         }
         Update: {
           agent_interaction?: string[] | null
+          analyzed_survey_response?: Json | null
           api_access?: string | null
+          client_id?: string | null
+          created_at?: string | null
           current_process?: string | null
           id?: string
           outputs?: string[] | null
@@ -525,41 +602,77 @@ export type Database = {
           priority?: string | null
           systems?: string[] | null
           triggers?: string[] | null
+          updated_at?: string | null
           user_id?: string | null
           volume?: string | null
           workflow_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "survey_response_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow: {
         Row: {
           client_id: string
+          costsaved: number | null
           created_at: string | null
           department: string | null
           description: string | null
+          exceptions: number | null
+          executions: number | null
           id: string
           name: string
+          nodes: number | null
+          schedule_days: string[] | null
+          schedule_hours: number[] | null
+          schedule_months: string[] | null
           status: string
+          timesaved: number | null
+          trigger_option: Database["public"]["Enums"]["trigger_option"] | null
           updated_at: string | null
         }
         Insert: {
           client_id: string
+          costsaved?: number | null
           created_at?: string | null
           department?: string | null
           description?: string | null
+          exceptions?: number | null
+          executions?: number | null
           id?: string
           name: string
+          nodes?: number | null
+          schedule_days?: string[] | null
+          schedule_hours?: number[] | null
+          schedule_months?: string[] | null
           status?: string
+          timesaved?: number | null
+          trigger_option?: Database["public"]["Enums"]["trigger_option"] | null
           updated_at?: string | null
         }
         Update: {
           client_id?: string
+          costsaved?: number | null
           created_at?: string | null
           department?: string | null
           description?: string | null
+          exceptions?: number | null
+          executions?: number | null
           id?: string
           name?: string
+          nodes?: number | null
+          schedule_days?: string[] | null
+          schedule_hours?: number[] | null
+          schedule_months?: string[] | null
           status?: string
+          timesaved?: number | null
+          trigger_option?: Database["public"]["Enums"]["trigger_option"] | null
           updated_at?: string | null
         }
         Relationships: [
@@ -575,6 +688,7 @@ export type Database = {
       workflow_exception: {
         Row: {
           client_id: string
+          created_at: string | null
           department: string | null
           details: string
           exception_type: string
@@ -586,11 +700,13 @@ export type Database = {
           resolved_by_user_id: string | null
           severity: string
           status: string
+          updated_at: string | null
           workflow_id: string
           workflow_name_snapshot: string
         }
         Insert: {
           client_id: string
+          created_at?: string | null
           department?: string | null
           details: string
           exception_type: string
@@ -602,11 +718,13 @@ export type Database = {
           resolved_by_user_id?: string | null
           severity: string
           status?: string
+          updated_at?: string | null
           workflow_id: string
           workflow_name_snapshot: string
         }
         Update: {
           client_id?: string
+          created_at?: string | null
           department?: string | null
           details?: string
           exception_type?: string
@@ -618,6 +736,7 @@ export type Database = {
           resolved_by_user_id?: string | null
           severity?: string
           status?: string
+          updated_at?: string | null
           workflow_id?: string
           workflow_name_snapshot?: string
         }
@@ -660,6 +779,14 @@ export type Database = {
         Args: { secret_id: string }
         Returns: undefined
       }
+      retrieve_vault_secret: {
+        Args: { vaultkey: string }
+        Returns: {
+          id: string
+          name: string
+          decrypted_secret: string
+        }[]
+      }
       update_pipeline_status: {
         Args: { p_id: number; new_status: string }
         Returns: undefined
@@ -668,6 +795,7 @@ export type Database = {
     Enums: {
       agent_status: "active" | "inactive"
       status: "pending" | "completed" | "in-progress"
+      trigger_option: "schedule" | "event"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -785,6 +913,7 @@ export const Constants = {
     Enums: {
       agent_status: ["active", "inactive"],
       status: ["pending", "completed", "in-progress"],
+      trigger_option: ["schedule", "event"],
     },
   },
 } as const

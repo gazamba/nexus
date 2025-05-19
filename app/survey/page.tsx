@@ -16,10 +16,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
-import {
-  getPipelineData,
-  advancePipelineStep,
-} from "@/lib/services/pipeline-service";
+import { insertAnalyzedSurveyResponse } from "@/lib/services/input-processing-service";
+import { getPipelineData } from "@/lib/services/pipeline-service";
+import { advancePipelineStep } from "@/lib/services/pipeline-service";
 import { useAuth } from "@/contexts/auth-provider";
 import { questions } from "./constants";
 
@@ -151,7 +150,6 @@ export default function SurveyPage() {
         user_id: user.id,
       };
 
-      // Handle 'Other' follow-up for all relevant checkbox/radio questions
       const followUpMap = [
         { main: "systems", other: "systems_other" },
         { main: "triggers", other: "triggers_other" },
@@ -225,17 +223,29 @@ export default function SurveyPage() {
 
       console.log(aiGeneratedResponse);
 
-      const insertRes = await fetch("/api/workflows/insert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(aiGeneratedResponse),
-      });
-      if (!insertRes.ok) {
-        const errorData = await insertRes.json();
-        throw new Error(
-          errorData.error || "Failed to insert workflows and nodes"
-        );
-      }
+      const insertRes = await fetch(
+        `/api/surveys/${surveyResponse.data.id}/analyze`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(aiGeneratedResponse),
+        }
+      );
+
+      console.log(insertRes);
+
+      // TODO: Uncomment this when we have the workflow insert endpoint
+      // const insertRes = await fetch("/api/workflows/insert", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(aiGeneratedResponse),
+      // });
+      // if (!insertRes.ok) {
+      //   const errorData = await insertRes.json();
+      //   throw new Error(
+      //     errorData.error || "Failed to insert workflows and nodes"
+      //   );
+      // }
 
       router.push("/survey/thank-you");
     } catch (error) {

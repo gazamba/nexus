@@ -2,23 +2,25 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ClientProfile, PipelineStep, Workflow } from "./types";
 import { API_ENDPOINTS } from "./constants";
+import { getPipelineDataByClient } from "@/lib/services/pipeline-service";
 
 export function useClientData() {
   const params = useParams();
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(
     null
   );
-  const [pipelineData, setPipelineData] = useState<PipelineStep[]>([]);
+  const [pipelineData, setPipelineData] = useState<any[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchClientData = async () => {
+      console.log(JSON.stringify(params));
       try {
         setIsLoading(true);
         const profileResponse = await fetch(
-          API_ENDPOINTS.CLIENT_PROFILE(params.id as string)
+          API_ENDPOINTS.CLIENT_PROFILE(params.clientId as string)
         );
         if (!profileResponse.ok) {
           throw new Error("Client not found");
@@ -26,16 +28,15 @@ export function useClientData() {
         const profileData = await profileResponse.json();
         setClientProfile(profileData);
 
-        const pipelineResponse = await fetch(
-          API_ENDPOINTS.PIPELINE(params.id as string)
+        const pipelineResponse = await getPipelineDataByClient(
+          params.clientId as string
         );
-        if (pipelineResponse.ok) {
-          const pipelineData = await pipelineResponse.json();
-          setPipelineData(pipelineData);
-        }
+
+        console.log(`pipelineResponse: ${JSON.stringify(pipelineResponse)}`);
+        setPipelineData(pipelineResponse.data || []);
 
         const workflowsResponse = await fetch(
-          API_ENDPOINTS.WORKFLOWS(params.id as string)
+          `/api/workflows?clientId=${params.clientId as string}`
         );
         if (workflowsResponse.ok) {
           const workflowsData = await workflowsResponse.json();
@@ -49,7 +50,7 @@ export function useClientData() {
     };
 
     fetchClientData();
-  }, [params.id]);
+  }, [params.clientId]);
 
   return {
     clientProfile,

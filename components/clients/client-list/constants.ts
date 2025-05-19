@@ -11,6 +11,4 @@ export const TAB_NAMES = {
 
 export const API_ENDPOINTS = {
   CLIENT_PROFILE: (id: string) => `/api/clients/${id}`,
-  PIPELINE: (id: string) => `/api/clients/${id}/pipeline`,
-  WORKFLOWS: (id: string) => `/api/clients/${id}/workflows`,
 } as const;

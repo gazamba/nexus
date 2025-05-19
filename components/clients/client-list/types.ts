@@ -1,7 +1,12 @@
 export interface Engineer {
-  avatar: string;
-  name: string;
+  id: string;
+  user_id: string;
+  full_name: string;
+  avatar_initial: string;
   role: string;
+  created_at: string;
+  updated_at: string;
+  email: string;
 }
 
 export interface User {
@@ -34,8 +39,9 @@ export interface Workflow {
 }
 
 export interface ClientProfile {
+  id: string;
   name: string;
-  engineers: Engineer[];
-  users: User[];
-  documents: Document[];
+  solutions_engineer_profile: Engineer[];
+  client_user_profile: User[];
+  document: Document[];
 }
