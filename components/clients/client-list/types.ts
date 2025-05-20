@@ -19,8 +19,13 @@ export interface User {
 }
 
 export interface Document {
+  id: string;
   title: string;
   url: string;
+  related_id: string;
+  related_type: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PipelineStep {
