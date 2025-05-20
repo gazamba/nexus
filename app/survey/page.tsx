@@ -19,11 +19,13 @@ import { useRouter } from "next/navigation";
 import {
   createNextPipelineProgress,
   getPipelineData,
+  markPipelineStepCompleted,
 } from "@/lib/services/pipeline-service";
 import { useAuth } from "@/contexts/auth-provider";
 import { questions } from "./constants";
 import { getClientId } from "@/lib/services/client-service";
 import { v4 as uuidv4 } from "uuid";
+import { createClient } from "@/utils/supabase/client";
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -57,7 +59,6 @@ export default function SurveyPage() {
     fetchPipelineData();
   }, [user?.id]);
 
-  // Group pipelineData by pipeline_group_id
   const pipelineGroups: Record<string, any[]> = {};
   for (const step of pipelineData) {
     const groupId = step.progress?.pipeline_group_id;
@@ -66,7 +67,6 @@ export default function SurveyPage() {
     pipelineGroups[groupId].push(step);
   }
 
-  // Check if any pipeline group is still in progress (last step not completed)
   let hasActivePipeline = false;
   for (const groupId in pipelineGroups) {
     const steps = pipelineGroups[groupId];
@@ -171,14 +171,14 @@ export default function SurveyPage() {
     setIsSubmitting(true);
 
     try {
-      // Generate a new pipeline_group_id for this survey/pipeline run
       const pipeline_group_id = uuidv4();
       let surveyData: Record<string, any> = {
         ...responses,
         user_id: user.id,
         client_id: clientId,
-        pipeline_group_id, // include the group id
+        pipeline_group_id,
       };
+      await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
 
       const followUpMap = [
         { main: "systems", other: "systems_other" },
@@ -236,6 +236,27 @@ export default function SurveyPage() {
         description: "Thank you for completing the survey.",
       });
 
+      const markCompletedResponse = await fetch(
+        "/api/pipeline/mark-completed",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            pipelineGroupId: pipeline_group_id,
+          }),
+        }
+      );
+
+      if (!markCompletedResponse.ok) {
+        const errorData = await markCompletedResponse.json();
+        throw new Error(
+          errorData.error || "Failed to mark pipeline step as completed"
+        );
+      }
+
       const analyzeRes = await fetch(
         `/api/surveys/${surveyResponse.data.id}/analyze`,
         {
@@ -266,9 +287,7 @@ export default function SurveyPage() {
         throw new Error(errorData.error || "Failed to update survey response");
       }
 
-      // After survey is created, create the first pipeline step with the same pipeline_group_id
       await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
-
       router.refresh();
       router.push("/");
     } catch (error) {

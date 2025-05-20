@@ -159,7 +159,7 @@ export async function createNextPipelineProgress(
   if (!nextStep) {
     throw new Error("All steps are already in progress or completed");
   }
-
+  console.log(JSON.stringify(nextStep, null, 2));
   const { data: newProgress, error: insertError } = await supabase
     .from("pipeline_progress")
     .insert([
@@ -181,4 +181,47 @@ export async function createNextPipelineProgress(
   }
 
   return newProgress;
+}
+
+export async function markPipelineStepCompleted(
+  userId: string,
+  pipelineGroupId: string
+) {
+  const supabase = await createClient();
+
+  console.log(`userId: ${userId}`);
+  console.log(`pipelineGroupId: ${pipelineGroupId}`);
+
+  const { data: progress, error: progressError } = await supabase
+    .from("pipeline_progress")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("pipeline_group_id", pipelineGroupId)
+    .eq("step_id", 1)
+    .single();
+
+  console.log(JSON.stringify(JSON.parse(JSON.stringify(progress)), null, 2));
+
+  if (progressError) {
+    throw new Error("Could not fetch pipeline progress");
+  }
+
+  if (progress) {
+    const { error: updateError } = await supabase
+      .from("pipeline_progress")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", progress.id)
+      .eq("pipeline_group_id", pipelineGroupId);
+
+    if (updateError) {
+      throw new Error(
+        `Could not mark step as completed: ${updateError.message}`
+      );
+    }
+  }
+
+  return { success: true };
 }
