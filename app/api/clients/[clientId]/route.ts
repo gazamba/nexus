@@ -18,6 +18,9 @@ export async function GET(
     }
 
     const clientId = await params.clientId;
+
+    console.log(`clientId: ${clientId}`);
+
     if (!clientId) {
       return NextResponse.json({ error: "Missing client ID" }, { status: 400 });
     }
@@ -71,8 +74,6 @@ export async function GET(
         ? [solutionsEngineerProfile]
         : [],
     };
-
-    console.log(`Response: ${JSON.stringify(response)}`);
 
     return NextResponse.json(response);
   } catch (error) {

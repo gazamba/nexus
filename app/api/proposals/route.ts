@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
 import { createProposal } from "@/lib/services/proposal-service";
+import { getClientName } from "@/lib/services/client-service";
 
 const escapeHTML = (str: string) =>
   str
@@ -85,6 +86,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const client_name = (await getClientName(client_id)) || "Unknown Client";
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -173,7 +176,12 @@ export async function POST(request: Request) {
   <div class="footer"></div>
   <div class="page title-page">
     <div class="title">Client Automation Proposal</div>
-    <div class="subtitle">Prepared for Client ID: ${escapeHTML(client_id)}</div>
+    <div class="subtitle">
+      <div>Prepared for ${escapeHTML(client_name)}</div>
+      <div class="text-xs text-gray-500">Client ID: ${escapeHTML(
+        client_id
+      )}</div>
+    </div>
     <div class="small">Prepared by: Nexus App Team</div>
     <div class="small">${new Date().toLocaleDateString()}</div>
     <div class="small" style="margin-top: 2cm;">
