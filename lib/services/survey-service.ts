@@ -63,10 +63,8 @@ export const updateAnalyzedSurveyResponse = async (
 export const listSurveyResponses = async (
   userId: string
 ): Promise<SurveyResponse[] | null> => {
-  const { data, error } = await supabase
-    .from("survey_response")
-    .select("*")
-    .eq("user_id", userId);
+  const { data, error } = await supabase.from("survey_response").select("*");
+  // .eq("user_id", userId);
 
   if (error || !data) {
     console.error("Error fetching survey response:", error);

@@ -105,13 +105,17 @@ export async function createNextPipelineProgress(
     .from("pipeline_progress")
     .select("*")
     .eq("user_id", userId)
+    .eq("client_id", clientId)
     .eq("pipeline_group_id", pipelineGroupId);
 
   if (progressError) {
-    throw new Error("Could not fetch pipeline progress");
+    throw new Error(`Could not fetch pipeline progress: ${progressError}`);
   }
 
+  console.log(`progress: ${JSON.stringify(progress, null, 2)}`);
+
   const currentStep = progress.find((p) => p.status === "in-progress");
+  console.log(`currentStep: ${JSON.stringify(currentStep, null, 2)}`);
 
   if (currentStep) {
     if (currentStep.step_id === 8) {
@@ -148,6 +152,7 @@ export async function createNextPipelineProgress(
   }
 
   const completedStepNumbers = new Set(progress.map((p) => p.step_id));
+  console.log(`completed ${completedStepNumbers}`);
   let nextStep;
 
   if (currentStep) {
@@ -167,7 +172,6 @@ export async function createNextPipelineProgress(
         user_id: userId,
         client_id: clientId,
         step_id: nextStep.id,
-        status: "in-progress",
         pipeline_group_id: pipelineGroupId,
       },
     ])
@@ -185,7 +189,8 @@ export async function createNextPipelineProgress(
 
 export async function markPipelineStepCompleted(
   userId: string,
-  pipelineGroupId: string
+  pipelineGroupId: string,
+  stepId: number
 ) {
   const supabase = await createClient();
 
@@ -195,15 +200,12 @@ export async function markPipelineStepCompleted(
   const { data: progress, error: progressError } = await supabase
     .from("pipeline_progress")
     .select("*")
-    .eq("user_id", userId)
-    .eq("pipeline_group_id", pipelineGroupId)
-    .eq("step_id", 1)
-    .single();
+    .eq("pipeline_group_id", pipelineGroupId);
 
-  console.log(JSON.stringify(JSON.parse(JSON.stringify(progress)), null, 2));
+  console.log(`progress: ${JSON.stringify(progress, null, 2)}`);
 
   if (progressError) {
-    throw new Error("Could not fetch pipeline progress");
+    throw new Error(`Could not fetch pipeline progress: ${progressError}`);
   }
 
   if (progress) {
@@ -213,7 +215,7 @@ export async function markPipelineStepCompleted(
         status: "completed",
         completed_at: new Date().toISOString(),
       })
-      .eq("id", progress.id)
+      .eq("step_id", stepId)
       .eq("pipeline_group_id", pipelineGroupId);
 
     if (updateError) {
