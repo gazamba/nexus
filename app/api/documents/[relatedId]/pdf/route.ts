@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generatePDFFromDocument } from "@/lib/services/document-service";
 
-export async function POST(
+export async function GET(
   request: Request,
   { params }: { params: { relatedId: string } }
 ) {
@@ -26,7 +26,7 @@ export async function POST(
 
     const { data: document, error: docError } = await supabase
       .from("document")
-      .select("id, related_type")
+      .select("id,related_id, related_type")
       .eq("related_id", relatedId)
       .single();
 
@@ -39,7 +39,7 @@ export async function POST(
 
     try {
       const pdfBuffer = await generatePDFFromDocument(
-        document.id,
+        document.related_id,
         document.related_type
       );
 

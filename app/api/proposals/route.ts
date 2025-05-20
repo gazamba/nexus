@@ -3,6 +3,14 @@ import { createClient } from "@/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
 import { createProposal } from "@/lib/services/proposal-service";
 
+const escapeHTML = (str: string) =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -28,7 +36,7 @@ export async function POST(request: Request) {
     const client_id = workflow.client_id;
     const user_id = userData.user.id;
     const id = uuidv4();
-    const workflow_type = workflow.name;
+    const workflow_type = workflow.name || "Unnamed Workflow";
     const current_process = workflow.description
       ? `Manually executing the process described as: ${workflow.description}`
       : "Manually handling tasks that could be automated.";
@@ -78,195 +86,191 @@ export async function POST(request: Request) {
       );
     }
 
-    const latexContent = `
-\\documentclass[12pt]{article}
-\\usepackage[utf8]{inputenc}
-\\usepackage{geometry}
-\\geometry{a4paper, margin=1in}
-\\usepackage{titlesec}
-\\usepackage{enumitem}
-\\usepackage{hyperref}
-\\usepackage{fancyhdr}
-\\usepackage{lastpage}
-\\usepackage{xcolor}
-\\usepackage[T1]{fontenc}
-\\usepackage{noto}
-\\pagestyle{fancy}
-\\fancyhf{}
-\\fancyhead[L]{Nexus App}
-\\fancyhead[R]{\\today}
-\\fancyfoot[C]{Page \\thepage\\ of \\pageref{LastPage}}
-\\titleformat{\\section}{\\Large\\bfseries}{\\thesection}{1em}{}
-\\titleformat{\\subsection}{\\large\\bfseries}{\\thesubsection}{1em}{}
-
-\\begin{document}
-
-\\begin{titlepage}
-  \\centering
-  \\vspace*{2cm}
-  {\\Huge\\bfseries Client Automation Proposal\\par}
-  \\vspace{1cm}
-  {\\Large Prepared for Client ID: ${client_id}\\par}
-  \\vspace{0.5cm}
-  {\\large Prepared by: Nexus App Team\\par}
-  \\vspace{0.5cm}
-  {\\large \\today\\par}
-  \\vfill
-  {\\large Nexus App\\\\A platform that automates client workflows by generating custom code and AI agents from survey data and documentation.\\par}
-\\end{titlepage}
-
-\\section{Executive Summary}
-This proposal outlines an automation solution tailored to address the specific needs and pain points identified in your workflow. The Nexus App team proposes an automated system to streamline your ${workflow_type} process by integrating ${systems.join(
-      " and "
-    )}, ensuring efficient task execution and notifications.
-
-\\section{Current Workflow and Pain Points}
-\\subsection{Current Process}
-${current_process
-  .replace(/%/g, "\\%")
-  .replace(/\$/g, "\\$")
-  .replace(/#/g, "\\#")
-  .replace(/&/g, "\\&")}
-
-\\subsection{Pain Points}
-The following challenges have been identified:
-\\begin{itemize}
-${pain_points
-  .map(
-    (point: string) =>
-      `  \\item ${point
-        .replace(/%/g, "\\%")
-        .replace(/\$/g, "\\$")
-        .replace(/#/g, "\\#")
-        .replace(/&/g, "\\&")}`
-  )
-  .join("\n")}
-\\end{itemize}
-
-\\section{Proposed Automation Solution}
-\\subsection{Overview}
-We propose an automation workflow that streamlines your processes by integrating with ${systems.join(
-      " and "
-    )} to deliver ${outputs.join(" and ")}.
-
-\\subsection{Key Components}
-\\begin{itemize}
-  \\item \\textbf{Trigger}: ${triggers
-    .join(", ")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item \\textbf{Systems Involved}:
-    \\begin{itemize}
-    ${systems
-      .map(
-        (system: string) =>
-          `      \\item ${system
-            .replace(/%/g, "\\%")
-            .replace(/\$/g, "\\$")
-            .replace(/#/g, "\\#")
-            .replace(/&/g, "\\&")}`
-      )
-      .join("\n")}
-    \\end{itemize}
-  \\item \\textbf{Output}: ${outputs
-    .join(", ")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item \\textbf{Agent Interaction}: Notifications via ${agent_interaction
-    .join(", ")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-\\end{itemize}
-
-\\subsection{Technical Details}
-\\begin{itemize}
-  \\item \\textbf{API Access}: ${api_access
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item \\textbf{Volume}: ${volume
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item \\textbf{Priority}: ${priority
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-\\end{itemize}
-
-\\section{Benefits}
-\\begin{itemize}
-  \\item \\textbf{Reduced Delays}: Automated processes eliminate manual task execution.
-  \\item \\textbf{Improved Visibility}: Real-time notifications provide instant awareness.
-  \\item \\textbf{Efficiency Gains}: Automation frees up your team for higher-value tasks.
-  \\item \\textbf{Scalability}: Designed to handle your current volume with room for growth.
-\\end{itemize}
-
-\\section{Implementation Plan}
-\\subsection{Timeline}
-\\begin{itemize}
-  \\item \\textbf{Week 1}: Configure API access for ${systems
-    .join(" and ")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item \\textbf{Week 2}: Develop and test the automation workflow.
-  \\item \\textbf{Week 3}: Deploy the solution and train your team.
-  \\item \\textbf{Week 4}: Monitor performance and make adjustments.
-\\end{itemize}
-
-\\subsection{Requirements}
-\\begin{itemize}
-  \\item API keys for ${systems
-    .join(" and ")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/&/g, "\\&")}.
-  \\item Designated notification channels.
-  \\item Confirmation of trigger conditions.
-\\end{itemize}
-
-\\section{Next Steps}
-Please review this proposal and provide your approval by signing below.
-
-\\section{Client Approval}
-I, the undersigned, approve the proposed automation solution and authorize the Nexus App team to proceed.
-
-\\vspace{1cm}
-
-\\begin{tabular}{ll}
-Client Name: & \\rule{8cm}{0.4pt} \\\\
-Signature: & \\rule{8cm}{0.4pt} \\\\
-Date: & \\rule{8cm}{0.4pt} \\\\
-\\end{tabular}
-
-\\vspace{1cm}
-
-\\begin{tabular}{ll}
-Prepared by: & Nexus App Team \\\\
-Contact: & \\href{mailto:support@nexusapp.com}{support@nexusapp.com} \\\\
-\\end{tabular}
-
-\\end{document}
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Client Automation Proposal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      margin: 1in;
+      font-size: 12pt;
+      line-height: 1.5;
+    }
+    .page {
+      page-break-after: always;
+      min-height: 10in;
+    }
+    .title-page {
+      text-align: center;
+      padding-top: 2cm;
+    }
+    .title {
+      font-size: 36pt;
+      font-weight: bold;
+      margin-bottom: 1cm;
+    }
+    .subtitle {
+      font-size: 18pt;
+      margin: 0.5cm 0;
+    }
+    .small {
+      font-size: 14pt;
+    }
+    h1 {
+      font-size: 18pt;
+      font-weight: bold;
+      margin-top: 1em;
+    }
+    h2 {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-top: 1em;
+    }
+    ul {
+      margin-left: 20px;
+      list-style-type: disc;
+    }
+    .header {
+      position: running(header);
+      font-size: 10pt;
+      display: flex;
+      justify-content: space-between;
+    }
+    .footer {
+      position: running(footer);
+      font-size: 10pt;
+      text-align: center;
+    }
+    @page {
+      @top-left { content: element(header); }
+      @bottom-center { content: element(footer); counter-increment: page; content: "Page " counter(page) " of " counter(pages); }
+    }
+    table.signature {
+      width: 100%;
+      margin-top: 1cm;
+    }
+    table.signature td {
+      width: 50%;
+    }
+    table.signature td.line {
+      border-bottom: 1pt solid black;
+    }
+    a {
+      color: #0000EE;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>Nexus App</span>
+    <span>${new Date().toLocaleDateString()}</span>
+  </div>
+  <div class="footer"></div>
+  <div class="page title-page">
+    <div class="title">Client Automation Proposal</div>
+    <div class="subtitle">Prepared for Client ID: ${escapeHTML(client_id)}</div>
+    <div class="small">Prepared by: Nexus App Team</div>
+    <div class="small">${new Date().toLocaleDateString()}</div>
+    <div class="small" style="margin-top: 2cm;">
+      Nexus App<br>
+      A platform that automates client workflows by generating custom code and AI agents from survey data and documentation.
+    </div>
+  </div>
+  <div class="page">
+    <h1>Executive Summary</h1>
+    <p>This proposal outlines an automation solution tailored to address the specific needs and pain points identified in your workflow. The Nexus App team proposes an automated system to streamline your ${escapeHTML(
+      workflow_type
+    )} process by integrating ${escapeHTML(
+      systems.join(" and ")
+    )}, ensuring efficient task execution and notifications.</p>
+    <h1>Current Workflow and Pain Points</h1>
+    <h2>Current Process</h2>
+    <p>${escapeHTML(current_process)}</p>
+    <h2>Pain Points</h2>
+    <p>The following challenges have been identified:</p>
+    <ul>
+      ${pain_points
+        .map((point: string) => `<li>${escapeHTML(point)}</li>`)
+        .join("\n      ")}
+    </ul>
+    <h1>Proposed Automation Solution</h1>
+    <h2>Overview</h2>
+    <p>We propose an automation workflow that streamlines your processes by integrating with ${escapeHTML(
+      systems.join(" and ")
+    )} to deliver ${escapeHTML(outputs.join(" and "))}.</p>
+    <h2>Key Components</h2>
+    <ul>
+      <li><b>Trigger:</b> ${escapeHTML(triggers.join(", "))}</li>
+      <li><b>Systems Involved:</b>
+        <ul>
+          ${systems
+            .map((system: string) => `<li>${escapeHTML(system)}</li>`)
+            .join("\n          ")}
+        </ul>
+      </li>
+      <li><b>Output:</b> ${escapeHTML(outputs.join(", "))}</li>
+      <li><b>Agent Interaction:</b> Notifications via ${escapeHTML(
+        agent_interaction.join(", ")
+      )}</li>
+    </ul>
+    <h2>Technical Details</h2>
+    <ul>
+      <li><b>API Access:</b> ${escapeHTML(api_access)}</li>
+      <li><b>Volume:</b> ${escapeHTML(volume)}</li>
+      <li><b>Priority:</b> ${escapeHTML(priority)}</li>
+    </ul>
+    <h1>Benefits</h1>
+    <ul>
+      <li><b>Reduced Delays:</b> Automated processes eliminate manual task execution.</li>
+      <li><b>Improved Visibility:</b> Real-time notifications provide instant awareness.</li>
+      <li><b>Efficiency Gains:</b> Automation frees up your team for higher-value tasks.</li>
+      <li><b>Scalability:</b> Designed to handle your current volume with room for growth.</li>
+    </ul>
+    <h1>Implementation Plan</h1>
+    <h2>Timeline</h2>
+    <ul>
+      <li><b>Week 1:</b> Configure API access for ${escapeHTML(
+        systems.join(" and ")
+      )}.</li>
+      <li><b>Week 2:</b> Develop and test the automation workflow.</li>
+      <li><b>Week 3:</b> Deploy the solution and train your team.</li>
+      <li><b>Week 4:</b> Monitor performance and make adjustments.</li>
+    </ul>
+    <h2>Requirements</h2>
+    <ul>
+      <li>API keys for ${escapeHTML(systems.join(" and "))}</li>
+      <li>Designated notification channels</li>
+      <li>Confirmation of trigger conditions</li>
+    </ul>
+    <h1>Next Steps</h1>
+    <p>Please review this proposal and provide your approval by signing below.</p>
+    <h1>Client Approval</h1>
+    <p>I, the undersigned, approve the proposed automation solution and authorize the Nexus App team to proceed.</p>
+    <table class="signature">
+      <tr><td>Client Name:</td><td class="line"></td></tr>
+      <tr><td>Signature:</td><td class="line"></td></tr>
+      <tr><td>Date:</td><td class="line"></td></tr>
+    </table>
+    <table class="signature">
+      <tr><td>Prepared by:</td><td>Nexus App Team</td></tr>
+      <tr><td>Contact:</td><td><a href="mailto:support@nexusapp.com">support@nexusapp.com</a></td></tr>
+    </table>
+  </div>
+</body>
+</html>
 `;
 
     try {
-      const proposal = await createProposal(supabase, {
+      const proposal = await createProposal({
         id,
         client_id,
         user_id,
-        latex_content: latexContent,
+        html_content: htmlContent,
         pipeline_group_id,
       });
 
