@@ -3,12 +3,12 @@ import { markPipelineStepCompleted } from "@/lib/services/pipeline-service";
 
 export async function POST(request: Request) {
   try {
-    const { userId, pipelineGroupId } = await request.json();
+    const { userId, pipelineGroupId, stepId } = await request.json();
 
     console.log(`userId: ${userId}`);
     console.log(`pipelineGroupId: ${pipelineGroupId}`);
 
-    await markPipelineStepCompleted(userId, pipelineGroupId);
+    await markPipelineStepCompleted(userId, pipelineGroupId, stepId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
