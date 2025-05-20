@@ -2,6 +2,10 @@
 
 A platform that automates client workflows by generating custom code and AI agents from survey data and documentation. It's a modern web application built with Next.js, Supabase, and TypeScript.
 
+### 🚧 **Project Status: In Development** 🚧
+
+This project is currently a work in progress. Features and functionality may change as development continues.
+
 ## 🚀 Features
 
 - **Modern Tech Stack**: Built with Next.js 15, React 19, and TypeScript
