@@ -270,16 +270,16 @@ Contact: & \\href{mailto:support@nexusapp.com}{support@nexusapp.com} \\\\
         pipeline_group_id,
       });
 
-      // Create document after proposal
       const documentRes = await fetch(
         `${process.env.NEXT_PUBLIC_APP_URL}/api/documents`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            client_id,
-            proposal_id: proposal.id,
-            content: latexContent,
+            client_id: client_id,
+            related_id: proposal.id,
+            related_type: "proposal",
+            title: "ADA Proposal",
           }),
         }
       );

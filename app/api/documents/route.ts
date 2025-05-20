@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     }
 
     const jsonData = await request.json();
+    console.log(`jsonData: ${JSON.stringify(jsonData)}`);
     const { client_id, related_type, related_id, title } = jsonData;
     jsonData;
 
