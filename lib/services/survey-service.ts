@@ -92,3 +92,23 @@ export const getSurveyResponseByClientAndUser = async (
 
   return data;
 };
+
+export const getSurveyResponseByPipelineGroupId = async (
+  pipelineGroupId: string
+): Promise<SurveyResponse | null> => {
+  const { data, error } = await supabase
+    .from("survey_response")
+    .select("*")
+    .eq("pipeline_group_id", pipelineGroupId)
+    .single();
+
+  if (error || !data) {
+    console.error(
+      "Error fetching survey response by pipeline group id:",
+      error
+    );
+    return null;
+  }
+
+  return data;
+};
