@@ -15,3 +15,20 @@ export async function getClientId(userId: string) {
 
   return data[0].client_id;
 }
+
+export async function getClientName(clientId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("client")
+    .select("name")
+    .eq("id", clientId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching client name:", error);
+    return null;
+  }
+
+  return data.name;
+}
