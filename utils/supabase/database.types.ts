@@ -217,25 +217,28 @@ export type Database = {
           client_id: string | null
           created_at: string | null
           id: string
+          related_id: string | null
+          related_type: string | null
           title: string
           updated_at: string | null
-          url: string
         }
         Insert: {
           client_id?: string | null
           created_at?: string | null
           id?: string
+          related_id?: string | null
+          related_type?: string | null
           title: string
           updated_at?: string | null
-          url: string
         }
         Update: {
           client_id?: string | null
           created_at?: string | null
           id?: string
+          related_id?: string | null
+          related_type?: string | null
           title?: string
           updated_at?: string | null
-          url?: string
         }
         Relationships: [
           {
@@ -525,6 +528,44 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      proposal: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          html_content: string
+          id: string
+          pipeline_group_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          html_content: string
+          id?: string
+          pipeline_group_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          html_content?: string
+          id?: string
+          pipeline_group_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solutions_engineer_assignment: {
         Row: {
