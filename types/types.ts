@@ -100,17 +100,14 @@ export interface SurveyResponse {
   pipeline_group_id?: string;
 }
 
-export interface WorkflowDoc {
-  id: string;
-  clientId: string;
-  workflowId?: string;
-  filePath: string;
-  fileName: string;
-  fileType: string;
-  uploadedBy: string;
-  createdAt: string;
-  analysisStatus: "pending" | "processing" | "completed" | "failed";
-  analysisResult?: Record<string, any>;
+export interface Document {
+  id?: string;
+  client_id: string;
+  title: string;
+  created_at?: string;
+  updated_at?: string;
+  related_id: string | null;
+  related_type: "proposal" | "invoice" | null;
 }
 
 export type UserRole = "admin" | "client" | "se";
@@ -220,4 +217,13 @@ export interface SurveyQuestion {
       value: string | string[];
     };
   };
+}
+
+interface Proposal {
+  id: string;
+  client_id: string;
+  user_id: string;
+  latex_content: string;
+  created_at: string;
+  updated_at: string;
 }
