@@ -19,13 +19,11 @@ import { useRouter } from "next/navigation";
 import {
   createNextPipelineProgress,
   getPipelineData,
-  markPipelineStepCompleted,
 } from "@/lib/services/pipeline-service";
 import { useAuth } from "@/contexts/auth-provider";
-import { questions } from "./constants";
+import { questions } from "../constants";
 import { getClientId } from "@/lib/services/client-service";
 import { v4 as uuidv4 } from "uuid";
-import { createClient } from "@/utils/supabase/client";
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -37,6 +35,8 @@ export default function SurveyPage() {
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientId, setClientId] = useState<string>("");
+  const pipelineGroups: Record<string, any[]> = {};
+
   useEffect(() => {
     if (!user?.id) return;
     const fetchClientId = async () => {
@@ -59,7 +59,6 @@ export default function SurveyPage() {
     fetchPipelineData();
   }, [user?.id]);
 
-  const pipelineGroups: Record<string, any[]> = {};
   for (const step of pipelineData) {
     const groupId = step.progress?.pipeline_group_id;
     if (!groupId) continue;
@@ -178,6 +177,7 @@ export default function SurveyPage() {
         client_id: clientId,
         pipeline_group_id,
       };
+
       await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
 
       const followUpMap = [
@@ -236,26 +236,7 @@ export default function SurveyPage() {
         description: "Thank you for completing the survey.",
       });
 
-      const markCompletedResponse = await fetch(
-        "/api/pipeline/mark-completed",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            pipelineGroupId: pipeline_group_id,
-          }),
-        }
-      );
-
-      if (!markCompletedResponse.ok) {
-        const errorData = await markCompletedResponse.json();
-        throw new Error(
-          errorData.error || "Failed to mark pipeline step as completed"
-        );
-      }
+      await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
 
       const analyzeRes = await fetch(
         `/api/surveys/${surveyResponse.data.id}/analyze`,
@@ -287,7 +268,6 @@ export default function SurveyPage() {
         throw new Error(errorData.error || "Failed to update survey response");
       }
 
-      await createNextPipelineProgress(user.id, clientId, pipeline_group_id);
       router.refresh();
       router.push("/");
     } catch (error) {
