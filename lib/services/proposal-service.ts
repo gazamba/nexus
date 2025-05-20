@@ -1,10 +1,11 @@
 import { createClient } from "@/utils/supabase/server";
-import { SupabaseClient } from "@supabase/supabase-js";
 
-export const getProposalById = async (
-  supabase: SupabaseClient,
-  proposalId: string
-) => {
+export const getProposalById = async (proposalId: string) => {
+  const supabase = await createClient();
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError || !userData?.user?.id) {
+    throw new Error("User not authenticated");
+  }
   const { data: proposal, error } = await supabase
     .from("proposal")
     .select("*")
@@ -18,16 +19,18 @@ export const getProposalById = async (
   return proposal;
 };
 
-export const createProposal = async (
-  supabase: SupabaseClient,
-  data: {
-    id: string;
-    client_id: string;
-    user_id: string;
-    latex_content: string;
-    pipeline_group_id: string;
+export const createProposal = async (data: {
+  id: string;
+  client_id: string;
+  user_id: string;
+  html_content: string;
+  pipeline_group_id: string;
+}) => {
+  const supabase = await createClient();
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError || !userData?.user?.id) {
+    throw new Error("User not authenticated");
   }
-) => {
   const { data: proposal, error } = await supabase
     .from("proposal")
     .insert(data)
@@ -41,11 +44,12 @@ export const createProposal = async (
   return proposal;
 };
 
-export const updateProposal = async (
-  supabase: SupabaseClient,
-  proposalId: string,
-  data: any
-) => {
+export const updateProposal = async (proposalId: string, data: any) => {
+  const supabase = await createClient();
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError || !userData?.user?.id) {
+    throw new Error("User not authenticated");
+  }
   const { data: proposal, error } = await supabase
     .from("proposal")
     .update(data)
@@ -60,10 +64,12 @@ export const updateProposal = async (
   return proposal;
 };
 
-export const deleteProposal = async (
-  supabase: SupabaseClient,
-  proposalId: string
-) => {
+export const deleteProposal = async (proposalId: string) => {
+  const supabase = await createClient();
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError || !userData?.user?.id) {
+    throw new Error("User not authenticated");
+  }
   const { error } = await supabase
     .from("proposal")
     .delete()

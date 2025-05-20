@@ -1,12 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { Document } from "@/types/types";
-import { promises as fs } from "fs";
-import { exec } from "child_process";
-import { promisify } from "util";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
-
-const execAsync = promisify(exec);
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 export const createDocument = async (data: Document) => {
   const supabase = await createClient();
@@ -18,7 +13,7 @@ export const createDocument = async (data: Document) => {
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(`Failed to create document: ${error.message}`);
   }
 
   return document;
@@ -29,43 +24,60 @@ export const generatePDFFromDocument = async (
   relatedType: string
 ) => {
   const supabase = await createClient();
+  console.log(`relatedId: ${relatedId}`);
+  console.log(`relatedType: ${relatedType}`);
 
-  if (relatedType === "proposal") {
-    const { data: document, error } = await supabase
-      .from("proposal")
-      .select("*")
-      .eq("id", relatedId)
-      .single();
+  if (relatedType !== "proposal") {
+    throw new Error("Invalid related type: Only 'proposal' is supported");
+  }
 
-    if (error || !document) {
-      throw new Error("Document not found");
-    }
+  const { data: document, error } = await supabase
+    .from("proposal")
+    .select("html_content") // Contains HTML content
+    .eq("id", relatedId)
+    .single();
 
-    const tempDir = path.join(process.cwd(), "tmp", uuidv4());
-    await fs.mkdir(tempDir, { recursive: true });
-    const texFilePath = path.join(tempDir, "document.tex");
-    const pdfFilePath = path.join(tempDir, "document.pdf");
+  if (error || !document?.html_content) {
+    throw new Error(
+      `Proposal not found for ID ${relatedId}: ${
+        error?.message || "No content"
+      }`
+    );
+  }
 
-    try {
-      await fs.writeFile(texFilePath, document.latex_content);
+  try {
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
 
-      await execAsync(
-        `latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" ${texFilePath}`,
-        { cwd: tempDir }
-      );
+    const page = await browser.newPage();
 
-      await fs.access(pdfFilePath);
+    await page.setContent(document.html_content, { waitUntil: "networkidle0" });
 
-      const pdfBuffer = await fs.readFile(pdfFilePath);
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      margin: { top: "1in", right: "1in", bottom: "1in", left: "1in" },
+      printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: "<span></span>",
+      footerTemplate: `
+        <div style="font-size: 10pt; text-align: center; width: 100%;">
+          Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+        </div>`,
+      preferCSSPageSize: true,
+    });
 
-      await fs.rm(tempDir, { recursive: true, force: true });
+    await browser.close();
 
-      return pdfBuffer;
-    } catch (error) {
-      await fs.rm(tempDir, { recursive: true, force: true });
-      throw error;
-    }
-  } else {
-    throw new Error("Invalid related type");
+    return Buffer.from(pdfBuffer);
+  } catch (error) {
+    throw new Error(
+      `Failed to generate PDF: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 };

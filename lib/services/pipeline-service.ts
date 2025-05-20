@@ -100,12 +100,14 @@ export async function createNextPipelineProgress(
   if (stepsError || !steps) {
     throw new Error("Could not fetch pipeline steps");
   }
-
+  console.log(`userId: ${userId}`);
+  console.log(`clientId: ${clientId}`);
+  console.log(`pipelineGroupId: ${pipelineGroupId}`);
   const { data: progress, error: progressError } = await supabase
     .from("pipeline_progress")
     .select("*")
-    .eq("user_id", userId)
-    .eq("client_id", clientId)
+    // .eq("user_id", userId)
+    // .eq("client_id", clientId)
     .eq("pipeline_group_id", pipelineGroupId);
 
   if (progressError) {
