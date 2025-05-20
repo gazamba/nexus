@@ -30,8 +30,8 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingProposal, setIsGeneratingProposal] = useState(false);
 
-  // Group progress by pipeline_group_id
   const pipelineGroups: Record<string, PipelineStep[]> = {};
   for (const step of pipelineData) {
     const groupId = step.progress?.pipeline_group_id;
@@ -40,7 +40,6 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     pipelineGroups[groupId].push(step);
   }
 
-  // Find the current pipeline group (active or most recent)
   let currentGroupId: string | undefined = undefined;
   let currentGroupProgress: Record<number, PipelineStep> = {};
   for (const groupId in pipelineGroups) {
@@ -56,7 +55,6 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
       break;
     }
   }
-  // If no in-progress, use the most recent completed
   if (!currentGroupId) {
     let latestCreatedAt = 0;
     for (const groupId in pipelineGroups) {
@@ -75,17 +73,14 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     }
   }
 
-  // Fallback: if no group, show nothing
   if (!currentGroupId) {
     return <div className="p-4">No pipeline data available.</div>;
   }
 
-  // Build the full step list (from pipelineData, which should include all steps)
   const allSteps = [...pipelineData]
     .filter((step, idx, arr) => arr.findIndex((s) => s.id === step.id) === idx)
     .sort((a, b) => a.step_order - b.step_order);
 
-  // Merge progress into all steps for the current group
   const mergedSteps = allSteps.map((step) => {
     const progressStep = currentGroupProgress[step.id];
     return progressStep
@@ -187,7 +182,7 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
       );
 
       const { data } = await getPipelineDataByClient(clientId);
-      // Filter again for the current group
+
       const updatedGroups: Record<string, PipelineStep[]> = {};
       for (const step of data) {
         const groupId = step.progress?.pipeline_group_id;
@@ -215,7 +210,56 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     }
   };
 
-  // Use localPipeline if set, otherwise mergedSteps
+  const handleGenerateProposal = async () => {
+    setIsGeneratingProposal(true);
+    try {
+      const step = mergedSteps[currentStepIndex];
+      let userId = user?.id || "";
+      if (
+        step.progress &&
+        typeof step.progress === "object" &&
+        "user_id" in step.progress &&
+        step.progress.user_id
+      ) {
+        userId = step.progress.user_id;
+      }
+      const res = await fetch(
+        `/api/surveys?pipeline_group_id=${currentGroupId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch survey response");
+      const surveyResponse = await res.json();
+      if (!surveyResponse.analyzed_survey_response) {
+        throw new Error("No analyzed_survey_response found.");
+      }
+      console.log(
+        "Survey response:",
+        JSON.stringify(surveyResponse.analyzed_survey_response)
+      );
+      const proposalRes = await fetch("/api/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...surveyResponse.analyzed_survey_response,
+          pipeline_group_id: currentGroupId,
+        }),
+      });
+      if (!proposalRes.ok) throw new Error("Failed to generate proposal");
+      toast({
+        title: "Proposal generated",
+        description: "The document proposal was generated successfully.",
+        variant: "default",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingProposal(false);
+    }
+  };
+
   const [localPipeline, setLocalPipeline] = useState(mergedSteps);
   const stepsToRender =
     localPipeline.length === mergedSteps.length ? localPipeline : mergedSteps;
@@ -253,7 +297,8 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
                   {step.step_name}
                   {isAdminOrSE &&
                     status === PIPELINE_STATUS.IN_PROGRESS &&
-                    step.step_name !== "Factory build initiated" && (
+                    step.step_name !== "Factory build initiated" &&
+                    step.step_name !== "ADA Proposal Sent" && (
                       <button
                         className="ml-2 px-3 py-1 bg-primary text-white rounded hover:bg-primary/90 text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         onClick={handleMarkAsComplete}
@@ -266,6 +311,24 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
                           </>
                         ) : (
                           "Mark as Complete"
+                        )}
+                      </button>
+                    )}
+                  {isAdminOrSE &&
+                    status === PIPELINE_STATUS.IN_PROGRESS &&
+                    step.step_name === "ADA Proposal Sent" && (
+                      <button
+                        className="ml-2 px-3 py-1 bg-secondary text-black rounded hover:bg-secondary/90 text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        onClick={handleGenerateProposal}
+                        disabled={isGeneratingProposal}
+                      >
+                        {isGeneratingProposal ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          "Generate Document Proposal"
                         )}
                       </button>
                     )}
