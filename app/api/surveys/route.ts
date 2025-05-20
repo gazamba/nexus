@@ -3,6 +3,7 @@ import {
   createSurveyResponse,
   listSurveyResponses,
   getSurveyResponseByClientAndUser,
+  getSurveyResponseByPipelineGroupId,
 } from "@/lib/services/survey-service";
 import { createClient } from "@/utils/supabase/server";
 
@@ -54,11 +55,25 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const clientId = url.searchParams.get("client_id");
     const userId = url.searchParams.get("user_id");
+    const pipelineGroupId = url.searchParams.get("pipeline_group_id");
 
     if (clientId && userId) {
       const surveyResponse = await getSurveyResponseByClientAndUser(
         clientId,
         userId
+      );
+      if (!surveyResponse) {
+        return NextResponse.json(
+          { error: "Survey response not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(surveyResponse);
+    }
+
+    if (pipelineGroupId) {
+      const surveyResponse = await getSurveyResponseByPipelineGroupId(
+        pipelineGroupId
       );
       if (!surveyResponse) {
         return NextResponse.json(
