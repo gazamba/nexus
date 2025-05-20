@@ -96,6 +96,7 @@ export interface SurveyResponse {
   priority: string;
   user_id: string;
   client_id: string;
+  analyzed_survey_response: any;
   pipeline_group_id?: string;
 }
 
