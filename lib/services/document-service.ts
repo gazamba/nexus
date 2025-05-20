@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
 
 export const createDocument = async (data: Document) => {
   const supabase = await createClient();
-
+  console.log(`data: ${JSON.stringify(data)}`);
   const { data: document, error } = await supabase
     .from("document")
     .insert(data)

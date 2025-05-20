@@ -244,6 +244,24 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
         }),
       });
       if (!proposalRes.ok) throw new Error("Failed to generate proposal");
+
+      const proposal = await proposalRes.json();
+
+      const documentRes = await fetch("/api/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: surveyResponse.client_id,
+          related_id: proposal.id,
+          related_type: "proposal",
+          title: "ADA Proposal",
+        }),
+      });
+
+      if (!documentRes.ok) {
+        console.error("Failed to create document");
+      }
+
       toast({
         title: "Proposal generated",
         description: "The document proposal was generated successfully.",
