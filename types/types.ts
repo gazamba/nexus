@@ -223,7 +223,7 @@ interface Proposal {
   id: string;
   client_id: string;
   user_id: string;
-  latex_content: string;
+  html_content: string;
   created_at: string;
   updated_at: string;
 }
