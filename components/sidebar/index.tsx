@@ -2,11 +2,9 @@
 
 import { Suspense } from "react";
 import {
-  Home,
   Users,
   Building2,
   CreditCard,
-  Settings,
   Ticket,
   MessageSquare,
   BarChart2,
@@ -14,6 +12,7 @@ import {
   Code,
   Bot,
   LayoutDashboard,
+  ClipboardList,
 } from "lucide-react";
 import { SidebarHeader } from "./header";
 import { SidebarNavigation } from "./navigation";
@@ -83,6 +82,12 @@ const links: SidebarLink[] = [
     icon: Bot,
     label: "Custom Agents",
     activePattern: "/agents",
+  },
+  {
+    href: "/surveys",
+    icon: ClipboardList,
+    label: "Workflow Surveys",
+    activePattern: "/surveys",
   },
 ];
 

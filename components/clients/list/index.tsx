@@ -42,7 +42,7 @@ export function ClientsList() {
       <div>
         <div className="flex justify-between items-center mb-6">
           <div></div>
-          <Link href="/clients/add">
+          <Link href="/clients/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Add Client

@@ -12,7 +12,7 @@ export function EmptyState() {
       <p className="text-gray-500 mb-4">
         Try adjusting your search or add a new client
       </p>
-      <Link href="/clients/add">
+      <Link href="/clients/new">
         <Button>
           <Plus className="h-4 w-4 mr-2" />
           Add Client

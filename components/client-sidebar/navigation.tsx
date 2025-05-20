@@ -57,7 +57,7 @@ const links: ClientSidebarLink[] = [
     label: "Messaging",
   },
   {
-    href: "/survey",
+    href: "/surveys/new",
     icon: ClipboardList,
     label: "Workflow Survey",
   },
