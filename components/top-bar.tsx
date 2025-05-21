@@ -47,7 +47,7 @@ export function TopBar() {
     if (pathname.includes("/agents")) return "Custom Agents";
     if (pathname.includes("/subscriptions")) return "Subscriptions";
     if (pathname.includes("/messaging")) return "Messaging";
-    if (pathname.includes("/survey")) return "Workflow Survey";
+    if (pathname.includes("/survey")) return "Workflow Surveys";
 
     return "Add new path";
   };

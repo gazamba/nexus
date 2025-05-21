@@ -59,9 +59,7 @@ export default function SurveysPage() {
 
   return (
     <div className="mx-auto p-2">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Workflow Surveys</h1>
-      </div>
+      <div className="flex justify-between items-center"></div>
 
       <div className="rounded-md border">
         <Table>
