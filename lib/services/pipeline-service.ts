@@ -1,4 +1,9 @@
 import { createClient } from "../../utils/supabase/client";
+import { insertWorkflowsAndNodesFromSurveyResponse } from "./workflow-service";
+import {
+  getSurveyResponseByPipelineGroupId,
+  analyzeSurveyResponse,
+} from "./survey-service";
 
 export async function getPipelineData(userId: string) {
   if (!userId) {
@@ -106,8 +111,6 @@ export async function createNextPipelineProgress(
   const { data: progress, error: progressError } = await supabase
     .from("pipeline_progress")
     .select("*")
-    // .eq("user_id", userId)
-    // .eq("client_id", clientId)
     .eq("pipeline_group_id", pipelineGroupId);
 
   if (progressError) {
@@ -154,13 +157,21 @@ export async function createNextPipelineProgress(
   }
 
   const completedStepNumbers = new Set(progress.map((p) => p.step_id));
-  console.log(`completed ${completedStepNumbers}`);
+  console.log(`completed step numbers: ${Array.from(completedStepNumbers)}`);
   let nextStep;
 
   if (currentStep) {
-    nextStep = steps.find((step) => !completedStepNumbers.has(step.step_order));
+    console.log(`Current step ID: ${currentStep.step_id}`);
+
+    nextStep = steps.find((step) => step.id === currentStep.step_id + 1);
+    console.log(`Found next step: ${JSON.stringify(nextStep)}`);
   } else {
-    nextStep = steps.find((step) => step.step_order === 1);
+    nextStep = steps.find((step) => !completedStepNumbers.has(step.id));
+    console.log(
+      `No current step, found first incomplete step: ${JSON.stringify(
+        nextStep
+      )}`
+    );
   }
 
   if (!nextStep) {
@@ -223,6 +234,66 @@ export async function markPipelineStepCompleted(
     if (updateError) {
       throw new Error(
         `Could not mark step as completed: ${updateError.message}`
+      );
+    }
+
+    const currentStep = progress.find((p) => p.step_id === stepId);
+    if (!currentStep) {
+      throw new Error("Current step not found in progress");
+    }
+
+    if (stepId === 7) {
+      try {
+        const surveyResponse = await getSurveyResponseByPipelineGroupId(
+          pipelineGroupId
+        );
+        if (!surveyResponse) {
+          throw new Error("Survey response not found");
+        }
+
+        const analyzedSurveyResponse = await analyzeSurveyResponse(
+          surveyResponse.analyzed_survey_response
+        );
+        console.log(
+          `analyzedSurveyResponse: ${JSON.stringify(
+            analyzedSurveyResponse,
+            null,
+            2
+          )}`
+        );
+
+        await insertWorkflowsAndNodesFromSurveyResponse(analyzedSurveyResponse);
+
+        const { error: factoryBuildError } = await supabase
+          .from("pipeline_progress")
+          .update({
+            status: "completed",
+            completed_at: new Date().toISOString(),
+          })
+          .eq("step_id", 8)
+          .eq("pipeline_group_id", pipelineGroupId);
+
+        if (factoryBuildError) {
+          throw new Error(
+            `Could not mark factory build as completed: ${factoryBuildError.message}`
+          );
+        }
+
+        await createNextPipelineProgress(
+          userId,
+          currentStep.client_id,
+          pipelineGroupId
+        );
+      } catch (error) {
+        console.error("Error in workflow handling:", error);
+        throw error;
+      }
+    } else {
+      // Normal flow for other steps
+      await createNextPipelineProgress(
+        userId,
+        currentStep.client_id,
+        pipelineGroupId
       );
     }
   }
