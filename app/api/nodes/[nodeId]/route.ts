@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { nodeId: string } }
+  { params }: { params: Promise<{ nodeId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const nodeId = await params.nodeId;
+    const { nodeId } = await params;
 
     const node = await getNode(nodeId);
     if (!node) {

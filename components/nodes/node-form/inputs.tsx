@@ -10,7 +10,8 @@ import { Plus, Trash2 } from "lucide-react";
 export function Inputs() {
   const { formData, setFormData } = useNodeForm();
 
-  const handleAddInput = () => {
+  const handleAddInput = (e: React.MouseEvent) => {
+    e.preventDefault();
     const newInput: NodeInput = {
       id: `new-${Date.now()}`,
       node_id: formData.name ? "temp" : "",
@@ -22,7 +23,7 @@ export function Inputs() {
 
     setFormData({
       ...formData,
-      inputs: [...formData.inputs, newInput],
+      inputs: [...(formData.inputs || []), newInput],
     });
   };
 

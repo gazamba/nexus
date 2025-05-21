@@ -9,6 +9,8 @@ import { NodeInput } from "@/types/types";
 import { Tabs } from "@/components/nodes/node-form/tabs";
 import { Inputs } from "@/components/nodes/node-form/inputs";
 import { Actions } from "@/components/nodes/node-form/actions";
+import { Code } from "@/components/nodes/node-form/code";
+import { Test } from "@/components/nodes/node-form/test";
 
 interface NodeFormProps {
   nodeId?: string;
@@ -140,7 +142,9 @@ return execute;`,
       <form onSubmit={handleSubmit} className="space-y-6">
         <Header />
         <Tabs />
-        <Inputs />
+        {formData.activeTab === "inputs" && <Inputs />}
+        {formData.activeTab === "code" && <Code />}
+        {formData.activeTab === "test" && <Test />}
         <Actions />
       </form>
     </NodeFormProvider>

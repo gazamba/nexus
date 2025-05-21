@@ -3,7 +3,7 @@ import { NodeForm } from "@/components/nodes/node-form";
 export default async function EditNodePage({
   params,
 }: {
-  params: { nodeId: string };
+  params: Promise<{ nodeId: string }>;
 }) {
   const { nodeId } = await params;
 
