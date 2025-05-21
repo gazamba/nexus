@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { insertWorkflowsAndNodesFromSurveyResponse } from "@/lib/services/input-processing-service";
+import { insertWorkflowsAndNodesFromSurveyResponse } from "@/lib/services/workflow-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: Request) {
@@ -9,6 +9,8 @@ export async function POST(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    console.log(`user: ${JSON.stringify(user, null, 2)}`);
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

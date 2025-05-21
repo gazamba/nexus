@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (pipelineGroupId) {
+      console.log(`pipelineGroupId check: ${pipelineGroupId}`);
       const surveyResponse = await getSurveyResponseByPipelineGroupId(
         pipelineGroupId
       );

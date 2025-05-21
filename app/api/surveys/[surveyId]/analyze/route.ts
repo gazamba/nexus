@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { analyzeSurveyResponse } from "@/lib/services/input-processing-service";
+import { analyzeSurveyResponse } from "@/lib/services/survey-service";
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 
 export async function POST(
   request: Request,
