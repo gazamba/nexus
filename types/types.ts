@@ -84,6 +84,7 @@ export interface AgentExecutionContext {
 }
 
 export interface SurveyResponse {
+  id?: string;
   workflow_type: string;
   current_process: string;
   triggers: string[];
