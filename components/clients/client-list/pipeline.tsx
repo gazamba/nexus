@@ -4,25 +4,37 @@ import { PipelineStep, PipelineProgress } from "./types";
 import { useAuth } from "@/contexts/auth-provider";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { PipelineStepComponent } from "./pipeline-step";
+import { useState } from "react";
 
 interface PipelineProps {
   pipelineData: PipelineStep[];
   clientId: string;
 }
 
-function hasUserId(progress: any): progress is { user_id: string } {
-  return (
-    progress &&
-    typeof progress.user_id === "string" &&
-    Object.keys(progress).length > 1
-  );
-}
-
 export function Pipeline({ pipelineData, clientId }: PipelineProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingProposal, setIsGeneratingProposal] = useState(false);
   const { user } = useAuth();
   const isAdminOrSE = user?.role === "admin" || user?.role === "se";
 
   const pipelineGroups: Record<string, PipelineStep[]> = {};
+  const stepProgressMap: Record<number, PipelineProgress> = {};
+
+  for (const step of pipelineData) {
+    if (step.progress) {
+      const existingProgress = stepProgressMap[step.id];
+      if (
+        !existingProgress ||
+        (step.progress.pipeline_group_id &&
+          (!existingProgress.pipeline_group_id ||
+            new Date(step.progress.created_at || "") >
+              new Date(existingProgress.created_at || "")))
+      ) {
+        stepProgressMap[step.id] = step.progress;
+      }
+    }
+  }
+
   for (const step of pipelineData) {
     const groupId = step.progress?.pipeline_group_id;
     if (!groupId) continue;
@@ -32,12 +44,13 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
 
   let currentGroupId: string | undefined = undefined;
   let currentGroupProgress: Record<number, PipelineStep> = {};
+
   for (const groupId in pipelineGroups) {
     const steps = pipelineGroups[groupId];
-    const lastStep = steps.reduce((prev, curr) =>
-      prev.step_order > curr.step_order ? prev : curr
+    const hasInProgress = steps.some(
+      (step) => step.progress?.status === "in-progress"
     );
-    if (lastStep?.progress?.status !== "completed") {
+    if (hasInProgress) {
       currentGroupId = groupId;
       steps.forEach((s) => {
         if (s.progress) currentGroupProgress[s.id] = s;
@@ -45,6 +58,7 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
       break;
     }
   }
+
   if (!currentGroupId) {
     let latestCreatedAt = 0;
     for (const groupId in pipelineGroups) {
@@ -76,6 +90,11 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     if (progressStep) {
       return progressStep;
     }
+
+    const mostRecentProgress = stepProgressMap[step.id];
+    if (mostRecentProgress) {
+      return { ...step, progress: mostRecentProgress };
+    }
     const pendingProgress: PipelineProgress = {
       id: 0,
       client_id: clientId,
@@ -89,16 +108,54 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     return { ...step, progress: pendingProgress };
   });
 
-  const {
-    isLoading,
-    isGeneratingProposal,
-    localPipeline,
-    handleMarkAsComplete,
-    handleGenerateProposal,
-  } = usePipeline(clientId, currentGroupId, allSteps);
+  const { localPipeline, handleMarkAsComplete, handleGenerateProposal } =
+    usePipeline(clientId, currentGroupId, allSteps);
 
   const stepsToRender =
     localPipeline.length === mergedSteps.length ? localPipeline : mergedSteps;
+
+  const handleMarkAsCompleteWrapper = async (stepId: number) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/pipeline/mark-completed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          pipelineGroupId: currentGroupId,
+          stepId: stepId,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to mark step as complete");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error marking step as complete:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateProposalWrapper = async () => {
+    setIsGeneratingProposal(true);
+    try {
+      const response = await fetch("/api/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workflows: [{ client_id: clientId }],
+          pipeline_group_id: pipelineData[0].pipeline_group_id,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to generate proposal");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error generating proposal:", error);
+    } finally {
+      setIsGeneratingProposal(false);
+    }
+  };
 
   return (
     <div className="border rounded-md overflow-hidden">
@@ -113,8 +170,8 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
             isAdminOrSE={isAdminOrSE}
             isLoading={isLoading}
             isGeneratingProposal={isGeneratingProposal}
-            onMarkAsComplete={handleMarkAsComplete}
-            onGenerateProposal={handleGenerateProposal}
+            onMarkAsComplete={() => handleMarkAsCompleteWrapper(step.id)}
+            onGenerateProposal={handleGenerateProposalWrapper}
           />
         ))}
       </div>

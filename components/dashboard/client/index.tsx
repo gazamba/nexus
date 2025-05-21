@@ -25,7 +25,7 @@ export function ClientDashboard() {
         const clientId = await getClientId(user.id);
         setClientId(clientId);
         const { data } = await getPipelineData(user.id);
-        console.log("Pipeline data:", data); // Debug log
+        console.log("Pipeline data:", data);
         setPipelineData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -45,7 +45,6 @@ export function ClientDashboard() {
     );
   }
 
-  // Only check status after data is loaded
   const isInitialSurveyCompleted =
     pipelineData.find((step) => step.step_name === "Discovery: Initial Survey")
       ?.progress?.status === "completed";
@@ -54,15 +53,10 @@ export function ClientDashboard() {
     pipelineData.find((step) => step.step_name === "Factory build initiated")
       ?.progress?.status === "completed";
 
-  // New: check if the final step is completed
   const lastStep = pipelineData.reduce((prev, curr) =>
     prev.step_order > curr.step_order ? prev : curr
   );
   const isPipelineFullyCompleted = lastStep?.progress?.status === "completed";
-
-  console.log("Survey completed:", isInitialSurveyCompleted); // Debug log
-  console.log("Factory build completed:", isFactoryBuildCompleted); // Debug log
-  console.log("Pipeline fully completed:", isPipelineFullyCompleted); // Debug log
 
   return (
     <div className="space-y-6">

@@ -35,6 +35,7 @@ export interface PipelineStep {
   created_at?: string;
   updated_at?: string;
   progress?: PipelineProgress;
+  pipeline_group_id?: string;
 }
 
 export interface Workflow {
