@@ -113,23 +113,19 @@ export interface Document {
 
 export type UserRole = "admin" | "client" | "se";
 
-export interface User {
+export interface Profile {
   id: string;
-  name: string;
+  user_id: string;
+  full_name: string;
+  avatar_initial: string;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
   email: string;
-  role?: UserRole;
-  avatar?: string;
-  full_name?: string;
-  phone?: string;
-  billing?: boolean;
-  admin?: boolean;
-  notes?: string;
-  department?: string;
-  exceptions?: string[];
-  access?: string[];
-  cost_rate?: number;
-  bill_rate?: number;
-  assigned_clients?: string[];
+  phone: string;
+  billing: boolean;
+  admin: boolean;
+  notes: string;
 }
 
 export interface Client {
@@ -227,4 +223,19 @@ interface Proposal {
   html_content: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  pricingModel: "fixed" | "tiered" | "usage";
+  creditPerPeriod: number;
+  pricePerCredit: number;
+  productUsageApi: "air-direct" | "credit-card";
+  contractLength: "month" | "quarter" | "year";
+  paymentCadence: "monthly" | "quarterly";
+  setupFee: number;
+  prepaymentPercentage: number;
+  capAmount: number;
+  overageCost: number;
 }
