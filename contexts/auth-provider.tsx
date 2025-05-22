@@ -4,11 +4,11 @@ import type React from "react";
 import { createClient } from "@/utils/supabase/client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { User, UserRole } from "@/types/types";
+import { Profile } from "@/types/types";
 
 interface AuthContextType {
-  user: User | null;
-  setUser: (user: User) => void;
+  user: Profile | null;
+  setUser: (user: Profile) => void;
   isAdmin: boolean;
   isClient: boolean;
   isSE: boolean;
@@ -16,7 +16,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function mapSupabaseUser(supabaseUser: SupabaseUser): User {
+function mapSupabaseUser(supabaseUser: SupabaseUser): Profile {
   return {
     id: supabaseUser.id,
     name:
@@ -28,38 +28,8 @@ function mapSupabaseUser(supabaseUser: SupabaseUser): User {
   };
 }
 
-export const getUserAvatar = (user: User): string => {
-  if (user.avatar) {
-    return user.avatar;
-  }
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    user.name
-  )}&background=random`;
-};
-
-export const sampleUsers = {
-  admin: {
-    id: "1",
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "admin" as UserRole,
-  },
-  client: {
-    id: "2",
-    name: "Client User",
-    email: "client@example.com",
-    role: "client" as UserRole,
-  },
-  se: {
-    id: "3",
-    name: "SE User",
-    email: "se@example.com",
-    role: "se" as UserRole,
-  },
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
