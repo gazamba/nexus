@@ -67,6 +67,7 @@ export type Database = {
           id: string
           industry: string | null
           name: string
+          plan_id: string | null
           status: string | null
           url: string | null
         }
@@ -76,6 +77,7 @@ export type Database = {
           id?: string
           industry?: string | null
           name: string
+          plan_id?: string | null
           status?: string | null
           url?: string | null
         }
@@ -85,10 +87,58 @@ export type Database = {
           id?: string
           industry?: string | null
           name?: string
+          plan_id?: string | null
           status?: string | null
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plan"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_plan: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_plan_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_plan_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plan"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_user_assignment: {
         Row: {
@@ -481,6 +531,51 @@ export type Database = {
           step_name?: string
           step_order?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      plan: {
+        Row: {
+          cap_amount: number
+          contract_length: string
+          credit_per_period: number
+          id: string
+          name: string
+          overage_cost: number
+          payment_cadence: string
+          prepayment_percentage: number
+          price_per_credit: number
+          pricing_model: string
+          product_usage_api: string
+          setup_fee: number
+        }
+        Insert: {
+          cap_amount: number
+          contract_length: string
+          credit_per_period: number
+          id?: string
+          name: string
+          overage_cost: number
+          payment_cadence: string
+          prepayment_percentage: number
+          price_per_credit: number
+          pricing_model: string
+          product_usage_api: string
+          setup_fee: number
+        }
+        Update: {
+          cap_amount?: number
+          contract_length?: string
+          credit_per_period?: number
+          id?: string
+          name?: string
+          overage_cost?: number
+          payment_cadence?: string
+          prepayment_percentage?: number
+          price_per_credit?: number
+          pricing_model?: string
+          product_usage_api?: string
+          setup_fee?: number
         }
         Relationships: []
       }
