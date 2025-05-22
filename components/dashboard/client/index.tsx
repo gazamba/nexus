@@ -10,12 +10,18 @@ import { MoneySaved } from "./metrics/money-saved";
 import { ActiveWorkflows } from "./metrics/active-workflows";
 import { UserCard } from "./user-card";
 import { getClientId } from "@/lib/services/client-service";
+import { getSolutionEngineer } from "@/lib/services/solution-engineer-service";
+import { Profile } from "@/types/types";
+import { Loading } from "@/components/ui/loading";
 
 export function ClientDashboard() {
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [clientId, setClientId] = useState<string | undefined>(undefined);
+  const [solutionEngineer, setSolutionEngineer] = useState<Profile | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     if (!user?.id) return;
@@ -27,6 +33,9 @@ export function ClientDashboard() {
         const { data } = await getPipelineData(user.id);
         console.log("Pipeline data:", data);
         setPipelineData(data);
+        const { data: solutionEngineer } = await getSolutionEngineer(clientId);
+        console.log("Solution engineer:", solutionEngineer);
+        setSolutionEngineer(solutionEngineer || undefined);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -37,12 +46,7 @@ export function ClientDashboard() {
   }, [user?.id]);
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
-        <span>Loading...</span>
-      </div>
-    );
+    return <Loading text="Loading dashboard..." fullScreen />;
   }
 
   const isInitialSurveyCompleted =
@@ -65,7 +69,7 @@ export function ClientDashboard() {
         <TimeSaved lastWeek="24.5 hrs" allTime="168.2 hrs" />
         <MoneySaved lastWeek="$2,450" allTime="$16,820" />
         <ActiveWorkflows count={12} />
-        {user && <UserCard user={user} />}
+        {solutionEngineer && <UserCard user={solutionEngineer} />}
       </div>
       {clientId && <Pipeline pipelineData={pipelineData} clientId={clientId} />}
     </div>

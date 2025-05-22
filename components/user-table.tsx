@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "@/types/types";
+import { Profile } from "@/types/types";
 
 interface TableHeaderProps {
   children: React.ReactNode;
@@ -12,9 +12,9 @@ interface TableCellProps {
 }
 
 interface UserTableProps {
-  users: User[];
+  users: Profile[];
   clients?: any[];
-  canManageUser?: (user: User) => boolean;
+  canManageUser?: (user: Profile) => boolean;
 }
 
 export function UserTable({ users, clients, canManageUser }: UserTableProps) {

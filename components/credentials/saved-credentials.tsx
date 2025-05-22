@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { Credential } from "@/types/types";
+import { Loading } from "@/components/ui/loading";
 
 interface SavedCredentialsProps {
   credentials: Credential[];
@@ -19,12 +20,7 @@ export function SavedCredentials({
   onEdit,
 }: SavedCredentialsProps) {
   if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background z-50">
-        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
-        <span>Loading...</span>
-      </div>
-    );
+    return <Loading text="Loading credentials..." fullScreen />;
   }
 
   if (!credentials || credentials.length === 0) {

@@ -9,6 +9,7 @@ import { BasicInfo } from "./basic-info";
 import { ModelSettings } from "./model-settings";
 import { Capabilities } from "./capabilities";
 import { Actions } from "./actions";
+import { Loading } from "@/components/ui/loading";
 
 const MOCK_AGENTS: Record<string, any> = {
   "1": {
@@ -44,12 +45,7 @@ function AgentFormContent({ agentId }: { agentId?: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>{agentId ? "Loading agent data..." : "Preparing form..."}</p>
-        </div>
-      </div>
+      <Loading text={agentId ? "Loading agent data..." : "Preparing form..."} />
     );
   }
 

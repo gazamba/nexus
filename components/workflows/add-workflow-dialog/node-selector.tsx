@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { Loading } from "@/components/ui/loading";
 
 interface Node {
   id: string;
@@ -92,12 +93,7 @@ export function NodeSelector({
   };
 
   if (loadingNodes) {
-    return (
-      <div className="flex items-center justify-center py-4">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        <span className="ml-2 text-muted-foreground">Loading nodes...</span>
-      </div>
-    );
+    return <Loading text="Loading nodes..." size="sm" />;
   }
 
   if (nodesError) {

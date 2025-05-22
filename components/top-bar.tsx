@@ -16,16 +16,43 @@ import {
 import { signOut } from "@/app/(auth)/login/actions";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export function TopBar() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [userInitial, setUserInitial] = useState("U");
+  const [clientName, setClientName] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.name) {
       setUserInitial(user.name.charAt(0).toUpperCase());
+    }
+
+    if (user?.role === "client") {
+      const fetchClientName = async () => {
+        const supabase = createClient();
+        const { data: assignments } = await supabase
+          .from("client_user_assignment")
+          .select("client_id")
+          .eq("client_user_id", user.id)
+          .single();
+
+        if (assignments?.client_id) {
+          const { data: client } = await supabase
+            .from("client")
+            .select("name")
+            .eq("id", assignments.client_id)
+            .single();
+
+          if (client?.name) {
+            setClientName(client.name);
+          }
+        }
+      };
+
+      fetchClientName();
     }
   }, [user]);
 
@@ -35,7 +62,8 @@ export function TopBar() {
   };
 
   const getPageTitle = () => {
-    if (pathname === "/") return "Dashboard";
+    if (pathname === "/")
+      return clientName ? `${clientName} Dashboard` : "Dashboard Overview";
     if (pathname.includes("/clients")) return "Clients";
     if (pathname.includes("/users")) return "Users";
     if (pathname.includes("/credentials")) return "Credentials";
@@ -45,7 +73,7 @@ export function TopBar() {
     if (pathname.includes("/workflow-roi")) return "Workflow ROI";
     if (pathname.includes("/nodes")) return "Nodes";
     if (pathname.includes("/agents")) return "Custom Agents";
-    if (pathname.includes("/subscriptions")) return "Subscriptions";
+    if (pathname.includes("/subscriptions")) return "Plan Manager";
     if (pathname.includes("/messaging")) return "Messaging";
     if (pathname.includes("/survey")) return "Workflow Surveys";
 

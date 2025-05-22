@@ -142,16 +142,18 @@ export function ClientTable({ clients }: ClientTableProps) {
   }
 
   return (
-    <div>
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">All Clients</h2>
-        <Button className="bg-black text-white">
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Client
-        </Button>
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+      <div className="p-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">All Clients</h2>
+          <Button className="bg-black text-white">
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add Client
+          </Button>
+        </div>
       </div>
 
-      <div className="border rounded-md overflow-hidden">
+      <div className="border-t overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="bg-muted/50">

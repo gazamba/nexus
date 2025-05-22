@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Edit, Play, Search, Bot } from "lucide-react";
 import { Agent } from "@/types/types";
+import { Loading } from "@/components/ui/loading";
 
 export function AgentsList({
   initialAgents = [],
@@ -81,14 +82,7 @@ export function AgentsList({
   });
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading agents...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="Loading agents..." />;
   }
 
   if (error) {

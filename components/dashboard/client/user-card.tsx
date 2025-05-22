@@ -1,41 +1,26 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Profile } from "@/types/types";
 
-interface User {
-  name?: string;
-  avatar?: string;
-}
-
-interface UserCardProps {
-  user: User;
-}
-
-function getUserAvatar(user: User) {
-  return user?.avatar || "/placeholder.svg?height=64&width=64&query=avatar";
-}
-
-export function UserCard({ user }: UserCardProps) {
+export function UserCard({ user }: { user: Profile }) {
+  console.log(`user: ${JSON.stringify(user)}`);
   return (
     <div className="bg-card p-6 rounded-md border">
       <div className="flex items-center gap-4 mb-4">
-        <div className="h-16 w-16 rounded-full bg-primary/10 overflow-hidden">
-          <img
-            src={getUserAvatar(user)}
-            alt="Solutions Engineer"
-            className="h-full w-full object-cover"
-          />
+        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <span className="text-2xl font-bold">{user?.avatar_initial}</span>
         </div>
         <div>
           <div className="font-medium text-lg">
-            {user?.name || "John Smith"}
+            {user?.full_name || "John Smith"}
           </div>
           <div className="text-sm text-muted-foreground">
             Solutions Engineer
           </div>
         </div>
       </div>
-      <Button variant="outline" className="w-full">
+      <Button variant="default" className="w-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"

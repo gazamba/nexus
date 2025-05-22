@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { Label } from "./ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
+import { Plan } from "@/types/types";
+import { Loading } from "./ui/loading";
 
 interface PlanFormData {
   name: string;
@@ -28,9 +30,10 @@ interface PlanFormData {
   overageCost: number;
 }
 
-export function AddNewPlan() {
+export function EditPlan({ planId }: { planId: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [formData, setFormData] = useState<PlanFormData>({
     name: "",
     pricingModel: "fixed",
@@ -44,6 +47,37 @@ export function AddNewPlan() {
     capAmount: 0,
     overageCost: 0,
   });
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      try {
+        const response = await fetch(`/api/plans?id=${planId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch plan");
+        }
+        const plan: Plan = await response.json();
+        setFormData({
+          name: plan.name,
+          pricingModel: plan.pricingModel,
+          creditPerPeriod: plan.creditPerPeriod,
+          pricePerCredit: plan.pricePerCredit,
+          productUsageApi: plan.productUsageApi,
+          contractLength: plan.contractLength,
+          paymentCadence: plan.paymentCadence,
+          setupFee: plan.setupFee,
+          prepaymentPercentage: plan.prepaymentPercentage,
+          capAmount: plan.capAmount,
+          overageCost: plan.overageCost,
+        });
+      } catch (error) {
+        toast.error("Failed to load plan details");
+        router.push("/subscriptions");
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+    fetchPlan();
+  }, [planId, router]);
 
   const handleCancel = () => {
     router.push("/subscriptions");
@@ -64,9 +98,8 @@ export function AddNewPlan() {
     setIsLoading(true);
 
     try {
-      console.log(`formData: ${JSON.stringify(formData)}`);
-      const response = await fetch("/api/plans", {
-        method: "POST",
+      const response = await fetch(`/api/plans?id=${planId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -75,10 +108,10 @@ export function AddNewPlan() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create plan");
+        throw new Error(error.message || "Failed to update plan");
       }
 
-      toast.success("Plan created successfully");
+      toast.success("Plan updated successfully");
       router.push("/subscriptions");
     } catch (error) {
       toast.error((error as Error).message);
@@ -87,11 +120,15 @@ export function AddNewPlan() {
     }
   };
 
+  if (isInitialLoading) {
+    return <Loading text="Loading plan details..." />;
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <main className="flex-1 overflow-auto p-6">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-xl font-bold mb-6">Add New Plan</h1>
+          <h1 className="text-xl font-bold mb-6">Edit Plan</h1>
           <form
             onSubmit={handleSubmit}
             className="bg-card p-8 rounded-md border"
@@ -250,7 +287,7 @@ export function AddNewPlan() {
               </div>
 
               <div className="relative">
-                <Label>Cap amount</Label>
+                <Label>Cap Amount</Label>
                 <Input
                   type="number"
                   placeholder="$"
@@ -264,9 +301,9 @@ export function AddNewPlan() {
               </div>
             </div>
 
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="relative">
-                <Label>Overage cost</Label>
+                <Label>Overage Cost</Label>
                 <Input
                   type="number"
                   placeholder="$"
@@ -281,11 +318,22 @@ export function AddNewPlan() {
             </div>
 
             <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={handleCancel} type="button">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Plan"}
+                {isLoading ? (
+                  <>
+                    <Loading size="sm" text="Saving..." />
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </div>
           </form>
