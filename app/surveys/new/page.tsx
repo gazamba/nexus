@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/auth-provider";
 import { questions } from "../constants";
 import { getClientId } from "@/lib/services/client-service";
 import { v4 as uuidv4 } from "uuid";
+import { Loading } from "@/components/ui/loading";
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -79,12 +80,7 @@ export default function SurveyPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
-        <span>Loading...</span>
-      </div>
-    );
+    return <Loading text="Loading survey data..." />;
   }
 
   if (hasActivePipeline) {

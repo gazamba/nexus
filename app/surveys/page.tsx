@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { Loading } from "@/components/ui/loading";
 
 interface SurveyResponseWithId extends SurveyResponse {
   id: string;
@@ -49,12 +50,7 @@ export default function SurveysPage() {
   }, [user?.id]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
-        <span>Loading surveys...</span>
-      </div>
-    );
+    return <Loading text="Loading surveys..." />;
   }
 
   return (

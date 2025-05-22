@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { SurveyResponse } from "@/types/types";
 import { format } from "date-fns";
+import { Loading } from "@/components/ui/loading";
 
 interface SurveyResponseWithId extends SurveyResponse {
   id: string;
@@ -42,12 +43,7 @@ export default function SurveyDetailPage() {
   }, [surveyId]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mr-2"></span>
-        <span>Loading survey...</span>
-      </div>
-    );
+    return <Loading text="Loading survey details..." />;
   }
 
   if (error) {

@@ -4,13 +4,13 @@ import { useAuth } from "@/contexts/auth-provider";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { UserTable } from "@/components/user-table";
-import { User } from "@/types/types";
+import { Profile } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 
 export default function UsersPage() {
   const { user } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,6 +38,7 @@ export default function UsersPage() {
           .from("solutions_engineer_assignment")
           .select("client_id")
           .eq("se_user_id", user.id);
+        console.log(`assignments: ${JSON.stringify(assignments, null, 2)}`);
         const clientIds = assignments?.map((a) => a.client_id) || [];
         const { data: allClients } = await supabase
           .from("client")
@@ -50,10 +51,10 @@ export default function UsersPage() {
         const clientUserIds =
           clientUserAssignments?.map((a) => a.client_user_id) || [];
         const { data: clientUsers } = await supabase
-          .from("users")
+          .from("profile")
           .select("*")
-          .in("id", clientUserIds);
-
+          .in("user_id", clientUserIds);
+        console.log(`clientUsers: ${JSON.stringify(clientUsers, null, 2)}`);
         const usersWithClients = (clientUsers || []).map((u) => ({
           ...u,
           assigned_clients: (u.assigned_clients_ids || []).map(
@@ -72,7 +73,7 @@ export default function UsersPage() {
     fetchData();
   }, [user]);
 
-  const canManageUser = (rowUser: User) => {
+  const canManageUser = (rowUser: Profile) => {
     if (user?.role === "admin") return true;
     if (user?.role === "se" && rowUser.role === "client") return true;
     return false;

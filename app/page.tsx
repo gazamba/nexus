@@ -8,7 +8,7 @@ export default function Home() {
   const { isAdmin, isClient, isSE } = useAuth();
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className=" bg-background">
       {(isAdmin || isSE) && (
         <>
           <DashboardOverview />
