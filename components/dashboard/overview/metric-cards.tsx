@@ -105,7 +105,6 @@ export function MetricCards({ selectedPeriod }: MetricCardsProps) {
         getDateRange(selectedPeriod);
 
       try {
-        // Fetch current period metrics
         const [
           { count: workflowCount, error: workflowError },
           { count: clientCount, error: clientError },
@@ -128,7 +127,6 @@ export function MetricCards({ selectedPeriod }: MetricCardsProps) {
             .lte("created_at", endDate),
         ]);
 
-        // Fetch previous period metrics
         const [
           { count: prevWorkflowCount },
           { count: prevClientCount },
@@ -155,7 +153,6 @@ export function MetricCards({ selectedPeriod }: MetricCardsProps) {
           throw new Error("Failed to fetch metrics");
         }
 
-        // Calculate totals
         const totalExceptions =
           workflowData?.reduce((sum, w) => sum + (w.exceptions || 0), 0) || 0;
         const totalTimeSaved =
@@ -235,7 +232,7 @@ export function MetricCards({ selectedPeriod }: MetricCardsProps) {
       title: "Total Exceptions",
       value: metrics.totalExceptions.toLocaleString(),
       change: exceptionChange.change,
-      increasing: !exceptionChange.increasing, // Decrease is good for exceptions
+      increasing: !exceptionChange.increasing,
     },
     {
       title: "Time Saved",
