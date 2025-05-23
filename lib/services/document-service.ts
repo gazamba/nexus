@@ -6,7 +6,7 @@ import chromium from "@sparticuz/chromium";
 
 export const createDocument = async (data: Document) => {
   const supabase = await createClient();
-  console.log(`data: ${JSON.stringify(data)}`);
+
   const { data: document, error } = await supabase
     .from("document")
     .insert(data)
@@ -50,7 +50,6 @@ export async function generatePDFFromDocument(
   const htmlContent = documentData.html_content;
 
   const isLocal = process.env.NODE_ENV === "development";
-  // const isVercel = !!process.env.VERCEL; // chromium.executablePath handles Vercel implicitly
 
   console.log("PDF Generation Environment:", {
     isLocal,
