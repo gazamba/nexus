@@ -34,8 +34,12 @@ export function WorkflowROI() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <main className="flex-1 overflow-auto p-6">
-        <Actions onAddWorkflow={() => setDialogOpen(true)} />
+      <main className="flex-1 overflow-auto">
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-semibold">Workflow ROI</h1>
+          <Actions onAddWorkflow={() => setDialogOpen(true)} />
+        </div>
+
         <WorkflowTable workflows={workflowData} />
       </main>
 

@@ -5,6 +5,7 @@ import { TableHeader } from "./header";
 import { TableCell } from "./cell";
 import { Workflow } from "@/types/types";
 import { AddWorkflowDialog } from "@/components/workflows/add-workflow-dialog";
+import Link from "next/link";
 
 interface WorkflowTableProps {
   workflows: Workflow[];
@@ -56,7 +57,14 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
               <TableCell>
                 {Array.isArray(workflow.nodes) ? workflow.nodes.length : "-"}
               </TableCell>
-              <TableCell>{workflow.executions}</TableCell>
+              <TableCell>
+                <Link
+                  href={`/workflows/${workflow.id}`}
+                  className="text-blue-500 hover:text-blue-700 hover:underline cursor-pointer"
+                >
+                  {workflow.executions}
+                </Link>
+              </TableCell>
               <TableCell>{workflow.exceptions}</TableCell>
               <TableCell>{workflow.timesaved}</TableCell>
               <TableCell>{workflow.costsaved}</TableCell>
