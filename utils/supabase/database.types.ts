@@ -844,7 +844,6 @@ export type Database = {
           status: string
           updated_at: string | null
           workflow_id: string
-          workflow_name_snapshot: string
         }
         Insert: {
           client_id: string
@@ -862,7 +861,6 @@ export type Database = {
           status?: string
           updated_at?: string | null
           workflow_id: string
-          workflow_name_snapshot: string
         }
         Update: {
           client_id?: string
@@ -880,7 +878,6 @@ export type Database = {
           status?: string
           updated_at?: string | null
           workflow_id?: string
-          workflow_name_snapshot?: string
         }
         Relationships: [
           {
