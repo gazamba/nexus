@@ -17,17 +17,20 @@ import { signOut } from "@/app/(auth)/login/actions";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TopBar() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [userInitial, setUserInitial] = useState("U");
+  const [userInitial, setUserInitial] = useState("");
   const [clientName, setClientName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.name) {
-      setUserInitial(user.name.charAt(0).toUpperCase());
+    if (user?.full_name) {
+      setUserInitial(user.avatar_initial.toUpperCase());
+      setIsLoading(false);
     }
 
     if (user?.role === "client") {
@@ -63,14 +66,15 @@ export function TopBar() {
 
   const getPageTitle = () => {
     if (pathname === "/")
-      return clientName ? `${clientName} Dashboard` : "Dashboard Overview";
+      return clientName ? `${clientName}` : "Dashboard Overview";
     if (pathname.includes("/clients")) return "Clients";
     if (pathname.includes("/users")) return "Users";
     if (pathname.includes("/credentials")) return "Credentials";
     if (pathname.includes("/exceptions")) return "Exceptions";
     if (pathname.includes("/billing")) return "Billing";
     if (pathname.includes("/reporting")) return "Reporting";
-    if (pathname.includes("/workflow-roi")) return "Workflow ROI";
+    if (pathname.includes("/workflow-roi"))
+      return clientName ? `${clientName}` : "Workflow ROI";
     if (pathname.includes("/nodes")) return "Nodes";
     if (pathname.includes("/agents")) return "Custom Agents";
     if (pathname.includes("/subscriptions")) return "Plan Manager";
@@ -93,9 +97,13 @@ export function TopBar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                {userInitial}
-              </div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-8 rounded-full" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                  {userInitial}
+                </div>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

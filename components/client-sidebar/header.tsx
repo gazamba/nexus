@@ -1,12 +1,7 @@
 "use client";
 
-import { BraintrustLogo } from "@/components/braintrust-logo";
+import { SharedHeader } from "@/components/shared/header";
 
 export function ClientSidebarHeader() {
-  return (
-    <div className="h-14 border-b flex items-center justify-center gap-2">
-      <BraintrustLogo />
-      <span className="font-semibold">Braintrust</span>
-    </div>
-  );
+  return <SharedHeader />;
 }
