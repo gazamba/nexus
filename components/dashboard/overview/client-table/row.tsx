@@ -47,7 +47,7 @@ export function ClientTableRow({ client }: ClientTableRowProps) {
       </TableCell>
       <TableCell>
         <Link
-          href={`/clients/${client.id}/workflows`}
+          href={`#`}
           className="hover:underline text-blue-500 flex items-center"
         >
           {client.workflows}
@@ -57,7 +57,7 @@ export function ClientTableRow({ client }: ClientTableRowProps) {
       <TableCell>{client.nodes}</TableCell>
       <TableCell>
         <Link
-          href={`/clients/${client.id}/executions`}
+          href={`#`}
           className="hover:underline text-blue-500 flex items-center"
         >
           {client.executions}
@@ -66,7 +66,7 @@ export function ClientTableRow({ client }: ClientTableRowProps) {
       </TableCell>
       <TableCell>
         <Link
-          href={`/clients/${client.id}/exceptions`}
+          href={`/exceptions`}
           className="hover:underline text-blue-500 flex items-center"
         >
           {client.exceptions}

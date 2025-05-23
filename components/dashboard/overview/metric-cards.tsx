@@ -260,7 +260,9 @@ export function MetricCards({ selectedPeriod }: MetricCardsProps) {
         <Card key={index} className="border">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">{card.title}</p>
+              <p className="text-lg font-medium text-muted-foreground">
+                {card.title}
+              </p>
               <div
                 className={`flex items-center text-xs ${
                   card.increasing ? "text-green-500" : "text-red-500"

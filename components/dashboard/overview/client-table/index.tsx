@@ -145,7 +145,7 @@ export function ClientTable({ clients }: ClientTableProps) {
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
       <div className="p-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">All Clients</h2>
+          <h2 className="text-xl font-medium">All Clients</h2>
           <Button className="bg-black text-white">
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Client
