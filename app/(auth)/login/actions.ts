@@ -21,8 +21,7 @@ export async function signup(formData: FormData) {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const firstName = formData.get("firstName") as string;
-  const lastName = formData.get("lastName") as string;
+  const fullName = formData.get("fullName") as string;
   const role = formData.get("role") as string;
   const phone = formData.get("phone") as string;
   const isBilling = formData.get("isBilling") === "true";
@@ -34,9 +33,8 @@ export async function signup(formData: FormData) {
     password,
     options: {
       data: {
-        firstName,
-        lastName,
-        avatar_initial: firstName[0],
+        full_name: fullName,
+        avatar_initial: fullName[0],
         role,
         phone,
         isBilling,
@@ -53,8 +51,8 @@ export async function signup(formData: FormData) {
     const { error: profileError } = await supabase.from("profile").insert({
       user_id: data.user?.id,
       email: email,
-      full_name: `${firstName} ${lastName}`,
-      avatar_initial: firstName[0],
+      full_name: fullName,
+      avatar_initial: fullName[0],
       role: role,
       phone: phone,
       billing: isBilling,
