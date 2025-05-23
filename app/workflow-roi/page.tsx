@@ -11,7 +11,7 @@ export default function WorkflowROIPage() {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 overflow-auto">
       <WorkflowROI />
     </div>
   );
