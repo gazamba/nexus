@@ -8,31 +8,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TableCell } from "./cell";
-
-interface Exception {
-  id: number;
-  datetime: string;
-  clientName: string;
-  department: string;
-  workflow: string;
-  notifications: number;
-  exceptionType: string;
-  severity: string;
-  remedy: string;
-  status: string;
-}
-
-interface ExceptionTableRowProps {
-  exception: Exception;
-}
+import { ExceptionTableRowProps } from "../types";
+import SeverityBadge from "@/components/ui/severity-badge";
 
 export function ExceptionTableRow({ exception }: ExceptionTableRowProps) {
+  console.log("Exception data in row:", exception);
   return (
     <tr className="border-t hover:bg-muted/20">
-      <TableCell>{exception.datetime}</TableCell>
-      <TableCell>{exception.clientName}</TableCell>
+      <TableCell>
+        {exception.datetime
+          ? new Date(exception.datetime).toLocaleString()
+          : "-"}
+      </TableCell>
+      <TableCell>{exception.clientName || "-"}</TableCell>
       <TableCell>{exception.department}</TableCell>
-      <TableCell>{exception.workflow}</TableCell>
+      <TableCell>{exception.workflowName}</TableCell>
       <TableCell>
         <div className="flex -space-x-2">
           <div className="h-6 w-6 rounded-full bg-primary border-2 border-background flex items-center justify-center text-primary-foreground text-xs">
@@ -48,9 +38,7 @@ export function ExceptionTableRow({ exception }: ExceptionTableRowProps) {
       </TableCell>
       <TableCell>{exception.exceptionType}</TableCell>
       <TableCell>
-        <span className="text-destructive font-medium">
-          {exception.severity}
-        </span>
+        <SeverityBadge severity={exception.severity} />
       </TableCell>
       <TableCell>{exception.remedy}</TableCell>
       <TableCell>

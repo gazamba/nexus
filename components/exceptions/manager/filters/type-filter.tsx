@@ -28,10 +28,11 @@ export function TypeFilter({ value, onChange }: TypeFilterProps) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All types</SelectItem>
+          <SelectItem value="authentication">Authentication</SelectItem>
+          <SelectItem value="data-process">Data process</SelectItem>
           <SelectItem value="integration">Integration</SelectItem>
-          <SelectItem value="data">Data</SelectItem>
-          <SelectItem value="system">System</SelectItem>
-          <SelectItem value="business">Business</SelectItem>
+          <SelectItem value="workflow-logic">Workflow logic</SelectItem>
+          <SelectItem value="browser-automation">Browser automation</SelectItem>
         </SelectContent>
       </Select>
     </div>

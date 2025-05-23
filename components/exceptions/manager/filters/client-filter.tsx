@@ -7,30 +7,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FilterProps } from "../types";
+import { Client } from "@/types/types";
 
-interface ClientFilterProps {
-  value: string;
-  onChange: (value: string) => void;
+interface ClientFilterProps extends FilterProps {
+  clients: Client[];
 }
 
-export function ClientFilter({ value, onChange }: ClientFilterProps) {
+export function ClientFilter({
+  value,
+  onChange,
+  label = "Client name",
+  placeholder = "All clients",
+  clients,
+}: ClientFilterProps) {
   return (
     <div>
       <label
         htmlFor="client-filter"
         className="block text-sm mb-1 text-muted-foreground"
       >
-        Client name
+        {label}
       </label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger id="client-filter">
-          <SelectValue placeholder="All clients" />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All clients</SelectItem>
-          <SelectItem value="acme">Acme Corp</SelectItem>
-          <SelectItem value="globex">Globex</SelectItem>
-          <SelectItem value="initech">Initech</SelectItem>
+          {clients.map((client) => (
+            <SelectItem key={client.id} value={client.id}>
+              {client.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

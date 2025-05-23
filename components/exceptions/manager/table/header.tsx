@@ -10,7 +10,7 @@ interface TableHeaderProps {
 
 export function TableHeader({ children, sortable }: TableHeaderProps) {
   return (
-    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+    <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">
       <div className="flex items-center">
         {children}
         {sortable && (

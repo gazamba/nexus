@@ -3,8 +3,10 @@
 import { ClientFilter } from "./client-filter";
 import { TypeFilter } from "./type-filter";
 import { SeverityFilter } from "./severity-filter";
+import { Client } from "@/types/types";
 
 interface FiltersProps {
+  clients: Client[];
   clientFilter: string;
   typeFilter: string;
   severityFilter: string;
@@ -14,6 +16,7 @@ interface FiltersProps {
 }
 
 export function Filters({
+  clients,
   clientFilter,
   typeFilter,
   severityFilter,
@@ -24,7 +27,11 @@ export function Filters({
   return (
     <div className="bg-card p-4 rounded-md border mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ClientFilter value={clientFilter} onChange={onClientFilterChange} />
+        <ClientFilter
+          value={clientFilter}
+          onChange={onClientFilterChange}
+          clients={clients}
+        />
         <TypeFilter value={typeFilter} onChange={onTypeFilterChange} />
         <SeverityFilter
           value={severityFilter}
