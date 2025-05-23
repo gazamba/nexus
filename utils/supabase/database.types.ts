@@ -583,7 +583,9 @@ export type Database = {
         Row: {
           admin: boolean | null
           avatar_initial: string | null
+          bill_rate: number | null
           billing: boolean | null
+          cost_rate: number | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -597,7 +599,9 @@ export type Database = {
         Insert: {
           admin?: boolean | null
           avatar_initial?: string | null
+          bill_rate?: number | null
           billing?: boolean | null
+          cost_rate?: number | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -611,7 +615,9 @@ export type Database = {
         Update: {
           admin?: boolean | null
           avatar_initial?: string | null
+          bill_rate?: number | null
           billing?: boolean | null
+          cost_rate?: number | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -832,7 +838,6 @@ export type Database = {
           client_id: string
           created_at: string | null
           department: string | null
-          details: string
           exception_type: string
           id: string
           node_id: string | null
@@ -849,7 +854,6 @@ export type Database = {
           client_id: string
           created_at?: string | null
           department?: string | null
-          details: string
           exception_type: string
           id?: string
           node_id?: string | null
@@ -866,7 +870,6 @@ export type Database = {
           client_id?: string
           created_at?: string | null
           department?: string | null
-          details?: string
           exception_type?: string
           id?: string
           node_id?: string | null
