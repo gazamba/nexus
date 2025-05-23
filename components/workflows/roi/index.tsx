@@ -8,12 +8,14 @@ import { Actions } from "./actions";
 import { WorkflowTable } from "./table";
 import { Workflow } from "@/types/types";
 import { listWorkflows } from "@/lib/services/workflow-service";
+import { Loading } from "@/components/ui/loading";
 
 export function WorkflowROI() {
   const { user } = useAuth();
   const [clientId, setClientId] = useState<string | null>(null);
   const [workflowData, setWorkflowData] = useState<Workflow[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchClientIdAndWorkflows = async () => {
@@ -24,6 +26,7 @@ export function WorkflowROI() {
         const data = await listWorkflows(clientId);
         setWorkflowData(data);
       }
+      setLoading(false);
     };
     fetchClientIdAndWorkflows();
   }, [user?.id]);
@@ -31,6 +34,10 @@ export function WorkflowROI() {
   const handleAddWorkflow = (newWorkflow: Workflow) => {
     setWorkflowData([newWorkflow, ...workflowData]);
   };
+
+  if (loading) {
+    return <Loading fullScreen />;
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
