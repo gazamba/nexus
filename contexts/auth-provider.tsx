@@ -19,12 +19,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function mapSupabaseUser(supabaseUser: SupabaseUser): Profile {
   return {
     id: supabaseUser.id,
-    name:
+    user_id: supabaseUser.id,
+    full_name:
       supabaseUser.user_metadata?.name ||
       supabaseUser.email?.split("@")[0] ||
       "User",
-    email: supabaseUser.email || "",
+    avatar_initial:
+      supabaseUser.user_metadata?.name?.charAt(0).toUpperCase() ||
+      supabaseUser.email?.split("@")[0]?.charAt(0).toUpperCase() ||
+      "U",
     role: supabaseUser.user_metadata?.role || "client",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    email: supabaseUser.email || "",
+    phone: "",
+    billing: false,
+    admin: false,
+    notes: "",
   };
 }
 
