@@ -239,3 +239,47 @@ export interface Plan {
   capAmount: number;
   overageCost: number;
 }
+
+export interface WorkflowException {
+  id: number;
+  reported_at: string;
+  client_id: string;
+  department: string | null;
+  workflow: { name: string };
+  exception_type: string | null;
+  severity: string | null;
+  remedy_notes: string | null;
+  status: string | null;
+}
+
+export interface Exception {
+  id: number;
+  datetime: string;
+  clientName: string;
+  department: string;
+  workflow: string;
+  notifications: number;
+  exceptionType: string;
+  severity: string;
+  remedy: string;
+  status: string;
+}
+
+export interface ExceptionFilters {
+  clients: Client[];
+  clientFilter: string;
+  typeFilter: string;
+  severityFilter: string;
+  onClientFilterChange: (value: string) => void;
+  onTypeFilterChange: (value: string) => void;
+  onSeverityFilterChange: (value: string) => void;
+}
+
+export interface ExceptionTableProps {
+  exceptions: Exception[];
+  isLoading: boolean;
+}
+
+export interface ExceptionTableRowProps {
+  exception: Exception;
+}
