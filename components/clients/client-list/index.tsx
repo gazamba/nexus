@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Header } from "@/components/clients/client-list/header";
 import { Overview } from "@/components/clients/client-list/overview";
-import { Workflows } from "@/components/clients/client-list/workflows";
+import { ClientWorkflows } from "@/components/clients/client-list/workflows";
 import { Loading } from "@/components/clients/client-list/loading";
 import { Error } from "@/components/clients/client-list/error";
 import { useClientData } from "./hooks";
@@ -54,7 +54,7 @@ export function ClientList() {
       {activeTab === TAB_NAMES.OVERVIEW ? (
         <Overview clientProfile={clientProfile} pipelineData={pipelineData} />
       ) : (
-        <Workflows workflows={workflows} />
+        <ClientWorkflows clientId={clientProfile.id} />
       )}
     </div>
   );

@@ -26,13 +26,16 @@ export function GlobalHeader() {
 
         <div className="flex items-center space-x-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar || ""} alt={user?.name || "User"} />
+            {/* <AvatarImage
+              src={user?.avatar_initial || ""}
+              alt={user?.full_name || "User"}
+            /> */}
             <AvatarFallback>
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{user?.name || "User"}</p>
+            <p className="text-sm font-medium">{user?.full_name || "User"}</p>
             <p className="text-xs text-muted-foreground">
               {user?.role || "User"}
             </p>

@@ -1,45 +1,36 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Workflow } from "./types";
+import { useEffect, useState } from "react";
+import { listWorkflows } from "@/lib/services/workflow-service";
+import { Workflow } from "@/types/types";
+import { WorkflowTable } from "@/components/workflows/roi/table";
+import { Loading } from "@/components/ui/loading";
 
-interface WorkflowsProps {
-  workflows: Workflow[];
+interface ClientWorkflowsProps {
+  clientId: string;
 }
 
-export function Workflows({ workflows }: WorkflowsProps) {
+export function ClientWorkflows({ clientId }: ClientWorkflowsProps) {
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      setLoading(true);
+      const data = await listWorkflows(clientId);
+      setWorkflows(data);
+      setLoading(false);
+    };
+    fetchWorkflows();
+  }, [clientId]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Workflows</h2>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Workflow
-        </Button>
-      </div>
-      <div className="border rounded-md overflow-hidden">
-        <div className="p-4 border-b">
-          <h3 className="font-medium">Active Workflows</h3>
-        </div>
-        <div className="divide-y">
-          {workflows.map((workflow) => (
-            <div key={workflow.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{workflow.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Created {workflow.created_at}
-                  </div>
-                </div>
-                <div className="text-sm font-medium text-primary">
-                  {workflow.status}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="border rounded-md overflow-hidden">
+      <WorkflowTable workflows={workflows} />
     </div>
   );
 }
