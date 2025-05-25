@@ -58,9 +58,9 @@ export const retrieveCredentialByCredentialId = async (
     throw new Error("User not authenticated");
   }
   const { data, error } = await supabase
-    .from("credential_field")
+    .from("credential")
     .select("*")
-    .eq("credential_id", credentialId);
+    .eq("id", credentialId);
 
   if (error) {
     throw new Error(
@@ -71,7 +71,7 @@ export const retrieveCredentialByCredentialId = async (
   return data;
 };
 
-export const deleteCredential = async (vaultKey: string): Promise<void> => {
+export const deleteVaultSecret = async (vaultKey: string): Promise<void> => {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData?.user?.id;

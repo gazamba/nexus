@@ -29,3 +29,21 @@ export async function createCredential(
 
   return data;
 }
+
+export async function getCredentials(params: Record<string, string>) {
+  const supabase = await createClient();
+  let query = supabase.from("credential").select("*");
+
+  for (const [key, value] of Object.entries(params)) {
+    query = query.eq(key, value);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    console.error("Error getting credentials:", error);
+    throw new Error("Failed to get credentials");
+  }
+
+  return data;
+}
