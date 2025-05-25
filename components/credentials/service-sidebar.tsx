@@ -10,7 +10,7 @@ export interface ThirdPartyService {
   id: string;
   name: string;
   icon: React.ReactNode;
-  connected: boolean;
+  connected?: boolean;
   color?: string;
 }
 

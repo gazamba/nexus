@@ -32,12 +32,14 @@ export interface ServiceCredentials {
 interface CredentialFormProps {
   service: ServiceCredentials | null;
   onSave: (serviceId: string, fields: CredentialField[]) => void;
+  isSaving?: boolean;
   className?: string;
 }
 
 export function CredentialForm({
   service,
   onSave,
+  isSaving = false,
   className,
 }: CredentialFormProps) {
   const [fields, setFields] = useState<CredentialField[]>(
@@ -160,8 +162,9 @@ export function CredentialForm({
           <Button
             onClick={handleSave}
             className="bg-black text-white hover:bg-gray-800"
+            disabled={isSaving}
           >
-            Save Changes
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </CardContent>
