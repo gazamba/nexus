@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ServiceSidebar,
   type ThirdPartyService,
@@ -14,41 +14,38 @@ import { Cloud, Diamond, Github, Slack, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-provider";
 import { getClientId } from "@/lib/services/client-service";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 const initialServices: ThirdPartyService[] = [
   {
     id: "slack",
     name: "Slack",
     icon: <Slack className="w-5 h-5" />,
-    connected: true,
   },
   {
     id: "github",
     name: "GitHub",
     icon: <Github className="w-5 h-5" />,
-    connected: false,
   },
   {
     id: "jira",
     name: "Jira",
     icon: <Diamond className="w-5 h-5 text-blue-600" />,
-    connected: false,
   },
   {
     id: "salesforce",
     name: "Salesforce",
     icon: <Cloud className="w-5 h-5 text-blue-500" />,
-    connected: false,
   },
   {
     id: "aws",
     name: "AWS",
     icon: <Zap className="w-5 h-5 text-orange-500" />,
-    connected: false,
   },
 ];
 
-const serviceCredentials: Record<string, ServiceCredentials> = {
+const providerCredentials: Record<string, ServiceCredentials> = {
   slack: {
     id: "slack",
     name: "Slack",
@@ -59,7 +56,7 @@ const serviceCredentials: Record<string, ServiceCredentials> = {
         id: "workspace_url",
         label: "Workspace URL",
         type: "url",
-        value: "acme-corp.slack.com",
+        value: "",
         placeholder: "your-workspace.slack.com",
         required: true,
       },
@@ -67,7 +64,7 @@ const serviceCredentials: Record<string, ServiceCredentials> = {
         id: "bot_token",
         label: "Bot User OAuth Token",
         type: "password",
-        value: "xoxb-************",
+        value: "",
         placeholder: "xoxb-your-bot-token",
         required: true,
         masked: true,
@@ -76,7 +73,7 @@ const serviceCredentials: Record<string, ServiceCredentials> = {
         id: "signing_secret",
         label: "Signing Secret",
         type: "password",
-        value: "********",
+        value: "",
         placeholder: "Your signing secret",
         required: true,
         masked: true,
@@ -207,24 +204,100 @@ const serviceCredentials: Record<string, ServiceCredentials> = {
 
 export default function CredentialsPage() {
   const { toast } = useToast();
-  const [services, setServices] =
+  const [provider, setProvider] =
     useState<ThirdPartyService[]>(initialServices);
-  const [selectedService, setSelectedService] = useState<string | null>(
-    "slack"
-  );
+  const [selectedService, setSelectedService] = useState<string>("slack");
   const [clientId, setClientId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFieldsLoading, setIsFieldsLoading] = useState<boolean>(false);
   const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    if (user?.id) {
-      getClientId(user.id).then((clientId) => {
-        setClientId(clientId);
-      });
-    }
+    if (!user?.id) return;
+    getClientId(user.id).then(setClientId);
   }, [user?.id]);
 
-  console.log(`clientId: ${clientId}`);
+  const fetchAllCredentials = useCallback(
+    async (clientId: string) => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/credentials?client_id=${clientId}`);
+        const allCreds = await res.json();
+        setProvider((provider) =>
+          provider.map((service) => ({
+            ...service,
+            connected: allCreds.some(
+              (cred: any) => cred.provider === service.id
+            ),
+          }))
+        );
+        Object.keys(providerCredentials).forEach((key) => {
+          providerCredentials[key].connected = allCreds.some(
+            (cred: any) => cred.provider === key
+          );
+        });
+      } catch (error) {
+        console.error("Error fetching credentials:", error);
+        toast({
+          title: "Error fetching credentials",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast]
+  );
+
+  useEffect(() => {
+    if (clientId) fetchAllCredentials(clientId);
+  }, [clientId, fetchAllCredentials]);
+
+  const fetchFieldValues = useCallback(async () => {
+    if (!clientId || !selectedService) return;
+    const service = providerCredentials[selectedService];
+    if (!service) return;
+
+    setIsFieldsLoading(true);
+    try {
+      const values = await Promise.all(
+        service.fields.map(async (field) => {
+          const res = await fetch(
+            `/api/credentials?client_id=${clientId}&provider=${selectedService}&variable_name=${field.id}`
+          );
+          const creds = await res.json();
+          if (
+            field.type === "password" &&
+            creds.length > 0 &&
+            creds[0].vault_key
+          ) {
+            return "**********";
+          }
+          return creds.length > 0 ? creds[0].variable_value || "" : "";
+        })
+      );
+      service.fields = service.fields.map((field, idx) => ({
+        ...field,
+        value: values[idx],
+      }));
+      setProvider((provider) => [...provider]);
+    } catch (error) {
+      console.error("Error fetching field values:", error);
+      toast({
+        title: "Error fetching field values",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFieldsLoading(false);
+    }
+  }, [clientId, selectedService, toast]);
+
+  useEffect(() => {
+    fetchFieldValues();
+  }, [clientId, selectedService, fetchFieldValues]);
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);
@@ -234,102 +307,161 @@ export default function CredentialsPage() {
     serviceId: string,
     fields: CredentialField[]
   ) => {
-    serviceCredentials[serviceId].fields = fields;
+    setIsSaving(true);
+    try {
+      providerCredentials[serviceId].fields = fields;
 
-    const allRequiredFieldsFilled = fields
-      .filter((field) => field.required)
-      .every((field) => field.value.trim() !== "");
+      const allRequiredFieldsFilled = fields
+        .filter((field) => field.required)
+        .every((field) => field.value.trim() !== "");
 
-    setServices(
-      services.map((service) =>
-        service.id === serviceId
-          ? { ...service, connected: allRequiredFieldsFilled }
-          : service
-      )
-    );
+      setProvider(
+        provider.map((service) =>
+          service.id === serviceId
+            ? { ...service, connected: allRequiredFieldsFilled }
+            : service
+        )
+      );
 
-    if (!clientId) {
-      return;
-    }
-
-    console.log(`selectedService: ${selectedService}`);
-
-    for (const field of fields) {
-      try {
-        if (field.type === "password") {
-          let secretName = `${selectedService}_${field.id}_${Date.now()}`;
-          console.log(`secretName: ${secretName}`);
-          const response = await fetch("/api/credentials/secret", {
-            method: "POST",
-            body: JSON.stringify({
-              secretName: secretName,
-              secretKey: field.value,
-            }),
-            headers: { "Content-Type": "application/json" },
-          });
-          const vaultKey = await response.json();
-
-          await fetch("/api/credentials", {
-            method: "POST",
-            body: JSON.stringify({
-              client_id: clientId,
-              provider: selectedService,
-              variable_name: field.id,
-              vault_key: vaultKey,
-              is_secret: true,
-            }),
-            headers: { "Content-Type": "application/json" },
-          });
-        } else {
-          await fetch("/api/credentials", {
-            method: "POST",
-            body: JSON.stringify({
-              client_id: clientId,
-              provider: selectedService,
-              variable_name: field.id,
-              variable_value: field.value,
-              is_secret: false,
-            }),
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-      } catch (error) {
-        console.error("Error creating secret:", error);
-        toast({
-          title: "Error saving credentials",
-          description: "Please try again",
-          variant: "destructive",
-        });
+      if (!clientId) {
         return;
       }
-    }
-    toast({
-      title: "Credentials saved successfully!",
-      description:
-        "You can now use these credentials to connect to the service.",
-      variant: "default",
-    });
-  };
 
-  const selectedServiceData = selectedService
-    ? serviceCredentials[selectedService]
-    : null;
+      for (const field of fields) {
+        try {
+          const response = await fetch(
+            `/api/credentials?client_id=${clientId}&provider=${selectedService}&variable_name=${field.id}`
+          );
+          const credentials = await response.json();
+
+          if (field.type === "password") {
+            let oldVaultKey =
+              credentials.length > 0 ? credentials[0].vault_key : null;
+
+            // 1. Delete old vault if exists
+            if (oldVaultKey) {
+              await fetch("/api/credentials/secret", {
+                method: "DELETE",
+                body: JSON.stringify({ vaultKey: oldVaultKey }),
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+
+            // 2. Create new secret
+            let secretName = `${selectedService}_${field.id}_${Date.now()}`;
+            const response = await fetch("/api/credentials/secret", {
+              method: "POST",
+              body: JSON.stringify({
+                secretName: secretName,
+                secretKey: field.value,
+              }),
+              headers: { "Content-Type": "application/json" },
+            });
+            const vaultKey = await response.json();
+
+            // 3. PATCH or POST as before
+            if (credentials.length > 0) {
+              await fetch("/api/credentials", {
+                method: "PATCH",
+                body: JSON.stringify({
+                  client_id: clientId,
+                  provider: selectedService,
+                  variable_name: field.id,
+                  vault_key: vaultKey,
+                }),
+                headers: { "Content-Type": "application/json" },
+              });
+            } else {
+              await fetch("/api/credentials", {
+                method: "POST",
+                body: JSON.stringify({
+                  client_id: clientId,
+                  provider: selectedService,
+                  variable_name: field.id,
+                  vault_key: vaultKey,
+                  is_secret: true,
+                }),
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+          } else {
+            if (credentials.length > 0) {
+              await fetch("/api/credentials", {
+                method: "PATCH",
+                body: JSON.stringify({
+                  client_id: clientId,
+                  provider: selectedService,
+                  variable_name: field.id,
+                  variable_value: field.value,
+                }),
+                headers: { "Content-Type": "application/json" },
+              });
+            } else {
+              await fetch("/api/credentials", {
+                method: "POST",
+                body: JSON.stringify({
+                  client_id: clientId,
+                  provider: selectedService,
+                  variable_name: field.id,
+                  variable_value: field.value,
+                  is_secret: false,
+                }),
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error saving credentials:", error);
+          toast({
+            title: "Error saving credentials",
+            description: "Please try again",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+      toast({
+        title: "Credentials saved successfully!",
+        description:
+          "You can now use these credentials to connect to the service.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error saving credentials:", error);
+      toast({
+        title: "Error saving credentials",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg">
       <div className="flex gap-8">
         <div className="w-80">
-          <ServiceSidebar
-            services={services}
-            selectedService={selectedService}
-            onServiceSelect={handleServiceSelect}
-          />
+          {isLoading ? (
+            <Skeleton className="h-[400px] w-full" />
+          ) : (
+            <ServiceSidebar
+              services={provider}
+              selectedService={selectedService}
+              onServiceSelect={handleServiceSelect}
+            />
+          )}
         </div>
 
-        <CredentialForm
-          service={selectedServiceData}
-          onSave={handleSaveCredentials}
-        />
+        {isLoading || isFieldsLoading ? (
+          <Skeleton className="h-[400px] flex-1" />
+        ) : (
+          <CredentialForm
+            service={providerCredentials[selectedService]}
+            onSave={handleSaveCredentials}
+            isSaving={isSaving}
+          />
+        )}
       </div>
     </div>
   );

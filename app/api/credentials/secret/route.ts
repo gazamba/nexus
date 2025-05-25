@@ -3,7 +3,7 @@ import {
   createSecret,
   retrieveCredentialDecryptedSecret,
   retrieveCredentialByCredentialId,
-  deleteCredential,
+  deleteVaultSecret,
 } from "@/lib/services/vault-service";
 
 export async function POST(req: NextRequest) {
@@ -37,7 +37,7 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-    await deleteCredential(vaultKey);
+    await deleteVaultSecret(vaultKey);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
