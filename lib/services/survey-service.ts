@@ -181,7 +181,7 @@ ${JSON.stringify(surveyResponse, null, 2)}
           "name": "string",
           "description": "string",
           "type": "string (e.g., EmailMonitor, Slack, HTTPRequest)",
-          "code": "JavaScript code for task",
+          "code": "JavaScript code for task, make sure to include return statement",
           "workflow_id": "workflow.id",
           "inputs": [
             {

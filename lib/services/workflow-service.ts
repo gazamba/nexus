@@ -74,7 +74,7 @@ export const updateWorkflow = async (
 ): Promise<boolean> => {
   const { data: currentWorkflow, error: fetchError } = await supabase
     .from("workflow")
-    .select("version")
+    .select("*")
     .eq("id", workflowId)
     .single();
 

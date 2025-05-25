@@ -4,6 +4,7 @@ import {
   getSurveyResponseByPipelineGroupId,
   analyzeSurveyResponse,
 } from "./survey-service";
+import { v4 as uuidv4 } from "uuid";
 
 export async function getPipelineData(userId: string) {
   if (!userId) {
@@ -242,6 +243,20 @@ export async function markPipelineStepCompleted(
       throw new Error("Current step not found in progress");
     }
 
+    if (stepId === 11) {
+      const newGroupId = uuidv4();
+      await supabase.from("pipeline_progress").insert({
+        user_id: userId,
+        client_id: currentStep.client_id,
+        step_id: 1,
+        pipeline_group_id: newGroupId,
+        status: "in-progress",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      return { restarted: true, newGroupId };
+    }
+
     if (stepId === 7) {
       try {
         const surveyResponse = await getSurveyResponseByPipelineGroupId(
@@ -289,7 +304,6 @@ export async function markPipelineStepCompleted(
         throw error;
       }
     } else {
-      // Normal flow for other steps
       await createNextPipelineProgress(
         userId,
         currentStep.client_id,
