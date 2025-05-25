@@ -9,6 +9,7 @@ interface PipelineStepProps {
   isGeneratingProposal: boolean;
   onMarkAsComplete: () => void;
   onGenerateProposal: () => void;
+  disabled?: boolean;
 }
 
 export function PipelineStepComponent({
@@ -18,6 +19,7 @@ export function PipelineStepComponent({
   isGeneratingProposal,
   onMarkAsComplete,
   onGenerateProposal,
+  disabled = false,
 }: PipelineStepProps) {
   let status = step.progress?.status || PIPELINE_STATUS.PENDING;
   if (
@@ -45,12 +47,11 @@ export function PipelineStepComponent({
           {step.step_name}
           {isAdminOrSE &&
             status === PIPELINE_STATUS.IN_PROGRESS &&
-            step.step_name !== "Factory build initiated" &&
             step.step_name !== "ADA Proposal Sent" && (
               <button
                 className="ml-2 px-3 py-1 bg-primary text-white rounded hover:bg-primary/90 text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 onClick={onMarkAsComplete}
-                disabled={isLoading}
+                disabled={isLoading || disabled}
               >
                 {isLoading ? (
                   <>
@@ -68,7 +69,7 @@ export function PipelineStepComponent({
               <button
                 className="ml-2 px-3 py-1 bg-secondary text-black rounded hover:bg-secondary/90 text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 onClick={onGenerateProposal}
-                disabled={isGeneratingProposal}
+                disabled={isGeneratingProposal || disabled}
               >
                 {isGeneratingProposal ? (
                   <>

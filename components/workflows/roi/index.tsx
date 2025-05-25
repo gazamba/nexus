@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-provider";
 import { getClientId } from "@/lib/services/client-service";
 import { AddWorkflowDialog } from "../add-workflow-dialog";
@@ -17,16 +17,31 @@ export function WorkflowROI() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchWorkflows = useCallback(async () => {
+    if (!user?.id || !clientId) return;
+    try {
+      const data = await listWorkflows(clientId);
+      setWorkflowData(data);
+    } catch (error) {
+      console.error("Error fetching workflows:", error);
+    }
+  }, [user?.id, clientId]);
+
   useEffect(() => {
     const fetchClientIdAndWorkflows = async () => {
       if (!user?.id) return;
-      const clientId = await getClientId(user.id);
-      setClientId(clientId);
-      if (clientId) {
-        const data = await listWorkflows(clientId);
-        setWorkflowData(data);
+      try {
+        const clientId = await getClientId(user.id);
+        setClientId(clientId);
+        if (clientId) {
+          const data = await listWorkflows(clientId);
+          setWorkflowData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching client ID and workflows:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchClientIdAndWorkflows();
   }, [user?.id]);
@@ -47,7 +62,7 @@ export function WorkflowROI() {
           <Actions onAddWorkflow={() => setDialogOpen(true)} />
         </div>
 
-        <WorkflowTable workflows={workflowData} />
+        <WorkflowTable workflows={workflowData} onRefresh={fetchWorkflows} />
       </main>
 
       <AddWorkflowDialog
