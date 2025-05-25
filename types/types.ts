@@ -1,3 +1,5 @@
+import { Database } from "@/utils/supabase/database.types";
+
 export interface NodeInput {
   id: string;
   node_id: string;
@@ -113,54 +115,19 @@ export interface Document {
 
 export type UserRole = "admin" | "client" | "se";
 
-export interface Profile {
-  id: string;
-  user_id: string;
-  full_name: string;
-  avatar_initial: string;
-  role: UserRole;
-  created_at: string;
-  updated_at: string;
-  email: string;
-  phone: string;
-  billing: boolean;
-  admin: boolean;
-  notes: string;
-}
+export type Profile = Database["public"]["Tables"]["profile"]["Row"];
 
-export interface Client {
-  id: string;
-  name: string;
-  url?: string | null;
-  created_at?: string | null;
-  active?: boolean;
-  industry?: string | null;
-  status?: string | null;
-  contractId?: string;
-  contractStart?: string;
-  workflows?: number;
-  nodes?: number;
-  executions?: number;
-  exceptions?: number;
-  revenue?: string;
-  timeSaved?: string;
-  moneySaved?: string;
-}
+export type SolutionsEngineerProfile = Profile & {
+  role: "se";
+};
 
-export interface CredentialField {
-  id: string;
-  variable_name: string;
-  vault_key: string;
-  credential_id: string;
-}
+export type ClientProfile = Profile & {
+  role: "client";
+};
 
-export interface Credential {
-  id: string;
-  client_id: string;
-  name: string;
-  fields: CredentialField[];
-  created_at: string;
-}
+export type Client = Database["public"]["Tables"]["client"]["Row"];
+
+export type Credential = Database["public"]["Tables"]["credential"]["Row"];
 
 export interface PipelineStep {
   id: number;

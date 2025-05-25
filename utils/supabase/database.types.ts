@@ -64,8 +64,8 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string | null
+          departments: string[] | null
           id: string
-          industry: string | null
           name: string
           plan_id: string | null
           status: string | null
@@ -74,8 +74,8 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string | null
+          departments?: string[] | null
           id?: string
-          industry?: string | null
           name: string
           plan_id?: string | null
           status?: string | null
@@ -84,8 +84,8 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string | null
+          departments?: string[] | null
           id?: string
-          industry?: string | null
           name?: string
           plan_id?: string | null
           status?: string | null
@@ -174,19 +174,34 @@ export type Database = {
           client_id: string
           created_at: string | null
           id: string
-          name: string
+          is_secret: boolean
+          provider: string | null
+          updated_at: string | null
+          variable_name: string
+          variable_value: string | null
+          vault_key: string | null
         }
         Insert: {
           client_id: string
           created_at?: string | null
           id?: string
-          name: string
+          is_secret: boolean
+          provider?: string | null
+          updated_at?: string | null
+          variable_name: string
+          variable_value?: string | null
+          vault_key?: string | null
         }
         Update: {
           client_id?: string
           created_at?: string | null
           id?: string
-          name?: string
+          is_secret?: boolean
+          provider?: string | null
+          updated_at?: string | null
+          variable_name?: string
+          variable_value?: string | null
+          vault_key?: string | null
         }
         Relationships: [
           {
@@ -194,41 +209,6 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "client"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      credential_field: {
-        Row: {
-          created_at: string | null
-          credential_id: string | null
-          id: string
-          updated_at: string | null
-          variable_name: string
-          vault_key: string
-        }
-        Insert: {
-          created_at?: string | null
-          credential_id?: string | null
-          id?: string
-          updated_at?: string | null
-          variable_name: string
-          vault_key: string
-        }
-        Update: {
-          created_at?: string | null
-          credential_id?: string | null
-          id?: string
-          updated_at?: string | null
-          variable_name?: string
-          vault_key?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credential_field_credential_id_fkey"
-            columns: ["credential_id"]
-            isOneToOne: false
-            referencedRelation: "credential"
             referencedColumns: ["id"]
           },
         ]
@@ -337,45 +317,6 @@ export type Database = {
             columns: ["workflow_id"]
             isOneToOne: false
             referencedRelation: "workflow"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      node_credential: {
-        Row: {
-          created_at: string | null
-          credential_id: string
-          id: string
-          node_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          credential_id: string
-          id?: string
-          node_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          credential_id?: string
-          id?: string
-          node_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "node_credential_credential_id_fkey"
-            columns: ["credential_id"]
-            isOneToOne: false
-            referencedRelation: "credential"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "node_credential_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "node"
             referencedColumns: ["id"]
           },
         ]
