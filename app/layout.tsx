@@ -5,6 +5,7 @@ import { LayoutWrapper } from "@/components/layout-wrapper";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Suspense } from "react";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata = {
   title: "Nexus App",
@@ -30,6 +31,7 @@ export default async function RootLayout({
           disableTransitionOnChange
           storageKey="braintrust-theme"
         >
+          <Toaster />
           <AuthProvider>
             <Suspense fallback={<LoadingSkeleton />}>
               <LayoutWrapper>{children}</LayoutWrapper>
