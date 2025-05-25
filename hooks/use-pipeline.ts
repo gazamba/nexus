@@ -67,6 +67,9 @@ export const usePipeline = (
     if (!user) return;
     setIsLoading(true);
     try {
+      console.log(`user.id:`, user.id);
+      console.log(`clientId:`, clientId);
+      console.log(`currentGroupId:`, currentGroupId);
       await createNextPipelineProgress(user.id, clientId, currentGroupId);
       await updatePipelineState();
     } catch (error) {
