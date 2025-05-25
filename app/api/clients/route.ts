@@ -1,5 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { Database } from "@/utils/supabase/database.types";
+
+type ClientInsert = Database["public"]["Tables"]["client"]["Insert"];
+type ClientUserAssignmentInsert =
+  Database["public"]["Tables"]["client_user_assignment"]["Insert"];
+type SolutionsEngineerAssignmentInsert =
+  Database["public"]["Tables"]["solutions_engineer_assignment"]["Insert"];
+type UserInsert = Database["public"]["Tables"]["profile"]["Insert"];
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,9 +49,9 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
+    const authUserId = userData?.user?.id;
 
-    if (!userId) {
+    if (!authUserId) {
       return NextResponse.json(
         { error: "User not authenticated" },
         { status: 401 }
@@ -51,35 +59,82 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const { client, user, solutionsEngineerId } = body;
 
-    if (!body.name || !body.industry) {
+    if (!client) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required client data" },
         { status: 400 }
       );
     }
 
-    const { data, error } = await supabase
+    // 1. Create client
+    const { data: clientData, error: clientError } = await supabase
       .from("client")
-      .insert({
-        name: body.name,
-        industry: body.industry,
-        description: body.description || "",
-        created_by: userId,
-      })
+      .insert(client as ClientInsert)
       .select("id")
       .single();
 
-    if (error || !data) {
+    if (clientError || !clientData) {
       return NextResponse.json(
         { error: "Failed to create client" },
         { status: 500 }
       );
     }
+    const clientId = clientData.id;
 
-    return NextResponse.json({ id: data.id });
+    // 2. Optionally create user (profile) and client_user_assignment
+    if (user) {
+      let userId = user.id;
+      if (!userId) {
+        // Insert user profile if not already created
+        const { data: userProfile, error: userError } = await supabase
+          .from("profile")
+          .insert(user as UserInsert)
+          .select("id")
+          .single();
+        if (userError || !userProfile) {
+          return NextResponse.json(
+            { error: "Failed to create user profile" },
+            { status: 500 }
+          );
+        }
+        userId = userProfile.id;
+      }
+      // Insert client_user_assignment
+      const { error: assignmentError } = await supabase
+        .from("client_user_assignment")
+        .insert({
+          client_id: clientId,
+          client_user_id: userId,
+        } as ClientUserAssignmentInsert);
+      if (assignmentError) {
+        return NextResponse.json(
+          { error: "Failed to create client_user_assignment" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // 3. Optionally create solutions_engineer_assignment
+    if (solutionsEngineerId) {
+      const { error: seAssignmentError } = await supabase
+        .from("solutions_engineer_assignment")
+        .insert({
+          client_id: clientId,
+          se_user_id: solutionsEngineerId,
+        } as SolutionsEngineerAssignmentInsert);
+      if (seAssignmentError) {
+        return NextResponse.json(
+          { error: "Failed to create solutions_engineer_assignment" },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json({ id: clientId });
   } catch (error) {
-    console.error("Error creating client:", error);
+    console.error("Error creating client and assignments:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
