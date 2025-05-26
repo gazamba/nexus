@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { useAuth } from "@/contexts/auth-provider";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +33,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { user } = useAuth();
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,12 +42,13 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    if (!body.name || !body.type || !body.code) {
+    if (!body.name || !body.code) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
+    console.log(`body: ${JSON.stringify(body)}`);
 
     const { data, error } = await supabase
       .from("node")
@@ -55,13 +56,10 @@ export async function POST(request: NextRequest) {
         {
           name: body.name,
           description: body.description || "",
-          type: body.type,
           code: body.code,
-          inputs: body.inputs || [],
-          outputs: body.outputs || [],
           is_public: body.is_public || false,
           created_by: user.id,
-          credentials: body.credentials || [],
+          inputs: body.inputs,
         },
       ])
       .select();

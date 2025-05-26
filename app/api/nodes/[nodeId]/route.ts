@@ -35,9 +35,9 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function PATCH(
   request: NextRequest,
-  { params }: { params: { nodeId: string } }
+  { params }: { params: Promise<{ nodeId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -51,7 +51,7 @@ export async function PUT(
       );
     }
 
-    const nodeId = await params.nodeId;
+    const { nodeId } = await params;
     const body = await request.json();
 
     if (!body) {
@@ -66,8 +66,8 @@ export async function PUT(
       description: body.description,
       type: body.type,
       code: body.code,
-      inputs: body.inputs,
       isPublic: body.isPublic,
+      inputs: body.inputs,
     });
 
     if (!success) {
@@ -89,7 +89,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { nodeId: string } }
+  { params }: { params: Promise<{ nodeId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -103,7 +103,7 @@ export async function DELETE(
       );
     }
 
-    const nodeId = await params.nodeId;
+    const { nodeId } = await params;
 
     const success = await deleteNode(nodeId);
     if (!success) {

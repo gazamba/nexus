@@ -8,9 +8,20 @@ export default async function NodeDetailPage({
 }) {
   const { nodeId } = params;
   const supabase = createClient();
+  const { data: user } = await supabase.auth.getUser();
+  const userId = user?.user?.id;
+
+  if (!userId) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">User not authenticated</h1>
+        <p>Please login to continue.</p>
+      </div>
+    );
+  }
 
   const { data: node } = await supabase
-    .from("nodes")
+    .from("node")
     .select("*")
     .eq("id", nodeId)
     .single();
@@ -25,7 +36,7 @@ export default async function NodeDetailPage({
   }
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <h1 className="text-2xl font-bold mb-6">{node.name}</h1>
       <NodeDetail node={node} />
     </div>
