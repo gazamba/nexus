@@ -1,13 +1,9 @@
 import { Database } from "@/utils/supabase/database.types";
 
-export interface NodeInput {
-  id: string;
-  node_id: string;
-  name: string;
-  type: string;
-  required: boolean;
-  description: string | null;
-}
+export type NodeInput = Database["public"]["Tables"]["node_input"]["Row"];
+
+export type NodeInputInsert =
+  Database["public"]["Tables"]["node_input"]["Insert"];
 
 export interface Node {
   id: string;
@@ -46,20 +42,9 @@ export interface Workflow {
   updated_at: string;
 }
 
-export interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  status: "active" | "inactive";
-  capabilities: string[];
-  lastActive: string;
-  model: string;
-  temperature: number;
-  maxTokens: number;
-  systemPrompt: string;
-  isPublic: boolean;
-}
+export type Agent = Database["public"]["Tables"]["agent"]["Row"];
+
+export type AgentInsert = Database["public"]["Tables"]["agent"]["Insert"];
 
 export interface WorkflowExecutionContext {
   workflowId: string;
@@ -69,12 +54,10 @@ export interface WorkflowExecutionContext {
   credentials: Credential[];
 }
 
-export interface NodeExecutionContext {
-  workflowId: string;
-  executionId: string;
+export interface NodeTestExecutionContext {
   clientId: string;
   userId: string;
-  credentials: Credential[];
+  credentials: Credential[] | [];
 }
 
 export interface AgentExecutionContext {

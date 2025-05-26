@@ -15,13 +15,13 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          ispublic: boolean | null
-          lastactive: string | null
-          maxtokens: number | null
+          is_public: boolean | null
+          last_active: string | null
+          max_tokens: number | null
           model: string | null
           name: string
           status: Database["public"]["Enums"]["agent_status"]
-          systemprompt: string | null
+          system_prompt: string | null
           temperature: number | null
           type: string | null
           updated_at: string | null
@@ -31,13 +31,13 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          ispublic?: boolean | null
-          lastactive?: string | null
-          maxtokens?: number | null
+          is_public?: boolean | null
+          last_active?: string | null
+          max_tokens?: number | null
           model?: string | null
           name: string
           status: Database["public"]["Enums"]["agent_status"]
-          systemprompt?: string | null
+          system_prompt?: string | null
           temperature?: number | null
           type?: string | null
           updated_at?: string | null
@@ -47,13 +47,13 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          ispublic?: boolean | null
-          lastactive?: string | null
-          maxtokens?: number | null
+          is_public?: boolean | null
+          last_active?: string | null
+          max_tokens?: number | null
           model?: string | null
           name?: string
           status?: Database["public"]["Enums"]["agent_status"]
-          systemprompt?: string | null
+          system_prompt?: string | null
           temperature?: number | null
           type?: string | null
           updated_at?: string | null
@@ -282,41 +282,44 @@ export type Database = {
       }
       node: {
         Row: {
+          client_id: string | null
           code: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
+          is_public: boolean | null
           name: string
-          type: string
           updated_at: string | null
-          workflow_id: string
         }
         Insert: {
+          client_id?: string | null
           code?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
+          is_public?: boolean | null
           name: string
-          type: string
           updated_at?: string | null
-          workflow_id: string
         }
         Update: {
+          client_id?: string | null
           code?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
+          is_public?: boolean | null
           name?: string
-          type?: string
           updated_at?: string | null
-          workflow_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "nodes_workflow_id_fkey"
-            columns: ["workflow_id"]
+            foreignKeyName: "node_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "workflow"
+            referencedRelation: "client"
             referencedColumns: ["id"]
           },
         ]
@@ -331,6 +334,7 @@ export type Database = {
           required: boolean
           type: string
           updated_at: string | null
+          value: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -341,6 +345,7 @@ export type Database = {
           required: boolean
           type: string
           updated_at?: string | null
+          value?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -351,6 +356,7 @@ export type Database = {
           required?: boolean
           type?: string
           updated_at?: string | null
+          value?: Json | null
         }
         Relationships: [
           {
@@ -840,6 +846,39 @@ export type Database = {
           },
           {
             foreignKeyName: "workflow_exceptions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_node_assignment: {
+        Row: {
+          created_at: string | null
+          node_id: string
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          node_id: string
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string | null
+          node_id?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_node_assignment_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "node"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_node_assignment_workflow_id_fkey"
             columns: ["workflow_id"]
             isOneToOne: false
             referencedRelation: "workflow"
