@@ -26,7 +26,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-background">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
           storageKey="braintrust-theme"
