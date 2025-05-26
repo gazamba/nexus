@@ -5,7 +5,7 @@ const supabase = createClient();
 
 export const getSolutionEngineer = async (
   clientId: string
-): Promise<{ data: Profile | null }> => {
+): Promise<{ data: Profile | undefined }> => {
   const { data: assignment, error: assignmentError } = await supabase
     .from("solutions_engineer_assignment")
     .select("se_user_id")
@@ -13,11 +13,8 @@ export const getSolutionEngineer = async (
     .single();
 
   if (assignmentError || !assignment) {
-    console.error(
-      "Error fetching solution engineer assignment:",
-      assignmentError
-    );
-    return { data: null };
+    console.error("No solution engineer assigned:", assignmentError);
+    return { data: undefined };
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -28,7 +25,7 @@ export const getSolutionEngineer = async (
 
   if (profileError || !profile) {
     console.error("Error fetching solution engineer profile:", profileError);
-    return { data: null };
+    return { data: undefined };
   }
 
   return { data: profile };

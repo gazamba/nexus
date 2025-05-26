@@ -13,6 +13,8 @@ export async function getClientId(userId: string) {
     return null;
   }
 
+  console.log(`error: ${error}`);
+
   return data[0].client_id;
 }
 
