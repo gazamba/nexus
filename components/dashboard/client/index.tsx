@@ -57,9 +57,11 @@ export function ClientDashboard() {
     pipelineData.find((step) => step.step_name === "Factory build initiated")
       ?.progress?.status === "completed";
 
-  const lastStep = pipelineData.reduce((prev, curr) =>
-    prev.step_order > curr.step_order ? prev : curr
-  );
+  const lastStep = pipelineData?.length
+    ? pipelineData.reduce((prev, curr) =>
+        prev.step_order > curr.step_order ? prev : curr
+      )
+    : null;
   const isPipelineFullyCompleted = lastStep?.progress?.status === "completed";
 
   return (

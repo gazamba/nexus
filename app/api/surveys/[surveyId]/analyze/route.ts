@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { surveyId: string } }
+  { params }: { params: Promise<{ surveyId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -18,7 +18,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const surveyId = await params.surveyId;
+    const { surveyId } = await params;
 
     if (!surveyId) {
       return NextResponse.json(
@@ -51,11 +51,11 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { surveyId: string } }
+  { params }: { params: Promise<{ surveyId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const surveyId = await params.surveyId;
+    const { surveyId } = await params;
 
     const { analyzedSurveyResponse } = await request.json();
 

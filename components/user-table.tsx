@@ -290,7 +290,7 @@ export function UserTable({ users, clients, canManageUser }: UserTableProps) {
                   <Avatar>
                     <AvatarImage
                       src={(user as any).avatar || ""}
-                      alt={user.full_name || user.email}
+                      alt={user.full_name || user.email || ""}
                     />
                     <AvatarFallback>
                       {user.full_name
@@ -298,7 +298,7 @@ export function UserTable({ users, clients, canManageUser }: UserTableProps) {
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")
-                        : user.email[0]}
+                        : user.email?.[0] || ""}
                     </AvatarFallback>
                   </Avatar>
                   <span>{user.full_name}</span>

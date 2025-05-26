@@ -208,37 +208,6 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
     }
   };
 
-  const handleGenerateProposalWrapper = async () => {
-    setIsGeneratingProposal(true);
-    try {
-      const response = await fetch("/api/proposals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workflows: [{ client_id: clientId }],
-          pipeline_group_id: pipelineDataState[0].pipeline_group_id,
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to generate proposal");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error generating proposal:", error);
-    } finally {
-      setIsGeneratingProposal(false);
-    }
-  };
-
-  console.log(`refreshTrigger:`, refreshTrigger);
-  console.log(`currentGroupId:`, currentGroupId);
-  console.log(`currentGroupIdState:`, currentGroupIdState);
-  console.log(`pipelineDataState:`, pipelineDataState);
-  console.log(`stepsToRender:`, stepsToRender);
-  console.log(`localPipeline:`, localPipeline);
-  console.log(`mergedSteps:`, mergedSteps);
-  console.log(`isLoading:`, isLoading);
-  console.log(`isGeneratingProposal:`, isGeneratingProposal);
-  console.log(`isAdminOrSE:`, isAdminOrSE);
-
   return (
     <div className="border rounded-md overflow-hidden" key={refreshTrigger}>
       <div className="p-4 border-b">
@@ -256,7 +225,7 @@ export function Pipeline({ pipelineData, clientId }: PipelineProps) {
               isLoading={isLoading}
               isGeneratingProposal={isGeneratingProposal}
               onMarkAsComplete={() => handleMarkAsCompleteWrapper(step.id)}
-              onGenerateProposal={handleGenerateProposalWrapper}
+              onGenerateProposal={handleGenerateProposal}
               disabled={isLoading}
             />
           ))
