@@ -36,7 +36,6 @@ export default function SurveyPage() {
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientId, setClientId] = useState<string>("");
-  const pipelineGroups: Record<string, any[]> = {};
 
   useEffect(() => {
     if (!user?.id) return;
@@ -60,30 +59,16 @@ export default function SurveyPage() {
     fetchPipelineData();
   }, [user?.id]);
 
-  for (const step of pipelineData) {
-    const groupId = step.progress?.pipeline_group_id;
-    if (!groupId) continue;
-    if (!pipelineGroups[groupId]) pipelineGroups[groupId] = [];
-    pipelineGroups[groupId].push(step);
-  }
-
-  let hasActivePipeline = false;
-  for (const groupId in pipelineGroups) {
-    const steps = pipelineGroups[groupId];
-    const lastStep = steps.reduce((prev, curr) =>
-      prev.step_order > curr.step_order ? prev : curr
-    );
-    if (lastStep?.progress?.status !== "completed") {
-      hasActivePipeline = true;
-      break;
-    }
-  }
-
   if (loading) {
     return <Loading text="Loading survey data..." />;
   }
 
-  if (hasActivePipeline) {
+  const firstStep = pipelineData.find(
+    (step) => step.step_order === 1 && step.progress
+  );
+  const isFirstStepCompleted = firstStep?.progress?.status === "completed";
+
+  if (isFirstStepCompleted) {
     return (
       <div className="container py-10">
         <div className="w-full max-w-2xl mx-auto text-center text-lg text-muted-foreground border rounded-lg p-8 bg-muted">

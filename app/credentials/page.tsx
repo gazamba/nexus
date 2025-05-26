@@ -338,7 +338,6 @@ export default function CredentialsPage() {
             let oldVaultKey =
               credentials.length > 0 ? credentials[0].vault_key : null;
 
-            // 1. Delete old vault if exists
             if (oldVaultKey) {
               await fetch("/api/credentials/secret", {
                 method: "DELETE",
@@ -347,7 +346,6 @@ export default function CredentialsPage() {
               });
             }
 
-            // 2. Create new secret
             let secretName = `${selectedService}_${field.id}_${Date.now()}`;
             const response = await fetch("/api/credentials/secret", {
               method: "POST",
@@ -359,7 +357,6 @@ export default function CredentialsPage() {
             });
             const vaultKey = await response.json();
 
-            // 3. PATCH or POST as before
             if (credentials.length > 0) {
               await fetch("/api/credentials", {
                 method: "PATCH",
