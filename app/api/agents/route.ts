@@ -36,12 +36,11 @@ export async function POST(request: NextRequest) {
       type: body.type,
       status: body.status,
       capabilities: body.capabilities,
-      lastactive: body.lastActive,
       model: body.model,
       temperature: body.temperature,
-      maxtokens: body.maxTokens,
-      systemprompt: body.systemPrompt,
-      ispublic: body.isPublic,
+      maxtokens: body.max_tokens,
+      systemprompt: body.system_prompt,
+      ispublic: body.is_public,
     });
 
     if (!agentId) {

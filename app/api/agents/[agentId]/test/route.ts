@@ -15,7 +15,7 @@ export async function POST(
     const supabase = await createClient();
     const { data: agent, error } = await supabase
       .from("agent")
-      .select("systemprompt")
+      .select("system_prompt")
       .eq("id", agentId)
       .single();
 
@@ -23,10 +23,8 @@ export async function POST(
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    console.log(`agent.systemprompt: ${agent.systemprompt}`);
-
     const openaiMessages = [
-      { role: "system", content: agent.systemprompt },
+      { role: "system", content: agent.system_prompt },
       ...messages.map((msg: { role: string; content: string }) => ({
         role: msg.role,
         content: msg.content,
@@ -34,7 +32,7 @@ export async function POST(
     ];
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // or your preferred model
+      model: "gpt-4o",
       messages: openaiMessages,
     });
 
