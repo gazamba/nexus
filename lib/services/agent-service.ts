@@ -17,18 +17,7 @@ export const getAgent = async (agentId: string): Promise<Agent | null> => {
   }
   console.log(`agent: ${JSON.stringify(data)}`);
   return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    type: data.type,
-    status: data.status,
-    capabilities: data.capabilities,
-    lastActive: data.lastactive,
-    model: data.model,
-    temperature: data.temperature,
-    maxTokens: data.maxtokens,
-    systemPrompt: data.systemprompt,
-    isPublic: data.ispublic,
+    ...data,
   };
 };
 
@@ -47,18 +36,7 @@ export const listAgents = async (clientId?: string): Promise<Agent[]> => {
   }
 
   return data.map((agent) => ({
-    id: agent.id,
-    name: agent.name,
-    description: agent.description,
-    type: agent.type,
-    status: agent.status,
-    capabilities: agent.capabilities,
-    lastActive: agent.lastactive,
-    model: agent.model,
-    temperature: agent.temperature,
-    maxTokens: agent.maxtokens,
-    systemPrompt: agent.systemprompt,
-    isPublic: agent.ispublic,
+    ...agent,
   }));
 };
 
@@ -68,7 +46,6 @@ export const createAgent = async (agent: {
   type?: string | null;
   status: "active" | "inactive";
   capabilities?: string[] | null;
-  lastactive?: string | null;
   model?: string | null;
   temperature?: number | null;
   maxtokens?: number | null;
@@ -85,12 +62,11 @@ export const createAgent = async (agent: {
       type: agent.type,
       status: agent.status,
       capabilities: agent.capabilities,
-      // lastactive: agent.lastactive,
       model: agent.model,
       temperature: agent.temperature,
-      maxtokens: agent.maxtokens,
-      systemprompt: agent.systemprompt,
-      ispublic: agent.ispublic,
+      max_tokens: agent.maxtokens,
+      system_prompt: agent.systemprompt,
+      is_public: agent.ispublic,
       client_id: agent.clientId,
     })
     .select("id")
@@ -112,7 +88,6 @@ export const updateAgent = async (
     type?: string | null;
     status?: "active" | "inactive";
     capabilities?: string[] | null;
-    lastactive?: string | null;
     model?: string | null;
     temperature?: number | null;
     maxtokens?: number | null;
@@ -128,12 +103,11 @@ export const updateAgent = async (
       type: updates.type,
       status: updates.status,
       capabilities: updates.capabilities,
-      lastactive: updates.lastactive,
       model: updates.model,
       temperature: updates.temperature,
-      maxtokens: updates.maxtokens,
-      systemprompt: updates.systemprompt,
-      ispublic: updates.ispublic,
+      max_tokens: updates.maxtokens,
+      system_prompt: updates.systemprompt,
+      is_public: updates.ispublic,
       updated_at: new Date().toISOString(),
     })
     .eq("id", agentId);
@@ -213,8 +187,6 @@ export const executeAgent = async (
   };
 
   try {
-    // Replace this with your agent's actual logic
-    // For now, just return a mock response
     return {
       success: true,
       response: `Agent ${agent.name} received your message: ${input.message}`,

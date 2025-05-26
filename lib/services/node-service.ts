@@ -1,41 +1,52 @@
 import { createClient } from "../../utils/supabase/client";
-import type { Node, NodeInput, WorkflowExecutionContext } from "@/types/types";
+import type {
+  Node,
+  NodeInput,
+  NodeTestExecutionContext,
+  WorkflowExecutionContext,
+} from "@/types/types";
 
 const supabase = createClient();
 
 export const getNode = async (
   nodeId: string
-): Promise<(Node & { credentials: any[] }) | null> => {
-  const { data, error } = await supabase
+): Promise<(Node & { credentials: any[]; inputs: NodeInput[] }) | null> => {
+  const { data: nodeData, error } = await supabase
     .from("node")
-    .select(
-      `
-       *,
-       node_credential (
-         credential (
-           *,
-           credential_field (
-             *
-           )
-         )
-       )
-     `
-    )
+    .select(`*`)
     .eq("id", nodeId)
     .single();
 
-  if (error || !data) {
+  if (error || !nodeData) {
     console.error("Error fetching node:", error);
-    return null;
+    throw new Error("Error fetching node");
+  }
+  console.log(`nodeData: ${JSON.stringify(nodeData.client_id)}`);
+  const { data: credentialsData, error: credentialsError } = await supabase
+    .from("credential")
+    .select("*")
+    .eq("client_id", nodeData.client_id);
+
+  if (credentialsError || !credentialsData) {
+    console.error("Error fetching credentials:", credentialsError);
+    throw new Error("Error fetching credentials");
   }
 
-  const credentials =
-    data.node_credential?.map((nc: any) => ({
-      ...nc.credential,
-      fields: nc.credential.credential_field || [],
-    })) || [];
+  const { data: inputsData, error: inputsError } = await supabase
+    .from("node_input")
+    .select("*")
+    .eq("node_id", nodeId);
+  if (inputsError) {
+    console.error("Error fetching node inputs:", inputsError);
+    throw new Error("Error fetching node inputs");
+  }
 
-  return { ...data, credentials };
+  console.log(`credentialsData: ${JSON.stringify(credentialsData)}`);
+  return {
+    ...nodeData,
+    credentials: credentialsData,
+    inputs: inputsData || [],
+  };
 };
 
 export const listNodes = async (clientId: string): Promise<Node[]> => {
@@ -72,7 +83,6 @@ export const createNode = async (node: {
       code: node.code,
       client_id: node.clientId,
       created_by: node.createdBy,
-      inputs: node.inputs || [],
       is_public: node.isPublic || false,
       credentials: node.credentials || [],
     })
@@ -82,6 +92,23 @@ export const createNode = async (node: {
   if (error || !data) {
     console.error("Error creating node:", error);
     return null;
+  }
+
+  if (node.inputs) {
+    for (const input of node.inputs) {
+      const { error: inputError } = await supabase.from("node_input").insert({
+        node_id: data.id,
+        name: input.name,
+        type: input.type,
+        required: input.required,
+        description: input.description,
+        value: input.value,
+      });
+      if (inputError) {
+        console.error("Error creating node input:", inputError);
+        return null;
+      }
+    }
   }
 
   return data.id;
@@ -106,12 +133,54 @@ export const updateNode = async (
       description: updates.description,
       type: updates.type,
       code: updates.code,
-      inputs: updates.inputs,
       is_public: updates.isPublic,
       credentials: updates.credentials,
       updated_at: new Date().toISOString(),
     })
     .eq("id", nodeId);
+
+  if (updates.inputs) {
+    const { data: currentInputs, error: fetchError } = await supabase
+      .from("node_input")
+      .select("id")
+      .eq("node_id", nodeId);
+    if (fetchError) {
+      console.error("Error fetching current node inputs:", fetchError);
+      return false;
+    }
+    const currentIds = (currentInputs || []).map((i) => i.id);
+    const formIds = updates.inputs.map((i) => i.id).filter(Boolean);
+
+    for (const input of updates.inputs) {
+      if (input.id) {
+        await supabase
+          .from("node_input")
+          .update({
+            name: input.name,
+            type: input.type,
+            required: input.required,
+            description: input.description,
+            value: input.value,
+          })
+          .eq("id", input.id);
+      } else {
+        await supabase.from("node_input").insert({
+          node_id: nodeId,
+          name: input.name,
+          type: input.type,
+          required: input.required,
+          description: input.description,
+          value: input.value,
+        });
+      }
+    }
+
+    for (const id of currentIds) {
+      if (!formIds.includes(id)) {
+        await supabase.from("node_input").delete().eq("id", id);
+      }
+    }
+  }
 
   if (error) {
     console.error("Error updating node:", error);
@@ -132,83 +201,54 @@ export const deleteNode = async (nodeId: string): Promise<boolean> => {
   return true;
 };
 
-export const testNode = async (
-  nodeId: string,
-  inputs: Record<string, any>,
-  context: {
-    clientId: string;
-    userId: string;
-  }
-): Promise<{
+interface Inputs {
+  [key: string]: string;
+}
+
+interface ExecutionResult {
   success: boolean;
-  outputs: Record<string, any>;
+  result?: unknown;
   error?: string;
-}> => {
-  const node = await getNode(nodeId);
-  if (!node) {
-    return {
-      success: false,
-      outputs: {},
-      error: "Node not found",
-    };
-  }
+}
 
+export async function executeNodeCode(
+  code: string,
+  inputs: Partial<NodeInput>[],
+  context: NodeTestExecutionContext
+): Promise<ExecutionResult> {
   try {
-    const executionContext: WorkflowExecutionContext = {
-      workflowId: "test",
-      executionId: "test-" + Date.now(),
-      clientId: context.clientId,
-      userId: context.userId,
-      credentials: [],
+    // const fullContext: NodeTestExecutionContext = {
+    //   clientId: context.clientId || '',
+    //   userId: context.userId || '',
+    //   credentials: context.credentials || []
+    // };
+
+    const sandbox = (
+      code: string,
+      inputs: Partial<NodeInput>[],
+      context: NodeTestExecutionContext
+    ): unknown => {
+      const fn: Function = new Function(
+        "inputs",
+        "context",
+        `
+          "use strict";
+          ${code}
+          return main(inputs, context); // Assumes code defines a 'main' function
+        `
+      );
+      return fn(inputs, context);
     };
 
-    const outputs = await node.execute(inputs, executionContext);
-    return { success: true, outputs };
-  } catch (error) {
-    console.error("Error testing node:", error);
-    return {
-      success: false,
-      outputs: {},
-      error: String(error),
-    };
-  }
-};
+    const result: unknown = sandbox(code, inputs, context);
 
-/**
- * Executes the code inside a Node's `code` field.
- * @param node The Node object (must have a `code` string field).
- * @param inputs The inputs to pass to the node's code.
- * @param context The execution context.
- * @returns The result of the node's code execution.
- */
+    console.log(`result: ${JSON.stringify(result)}`);
 
-export async function executeNode(
-  node: Node,
-  inputs: Record<string, any>,
-  context: WorkflowExecutionContext
-): Promise<Record<string, any>> {
-  if (typeof node.code !== "string" || !node.code.trim()) {
-    throw new Error("Node code is missing or invalid.");
-  }
-
-  let fn: (
-    inputs: Record<string, any>,
-    context: WorkflowExecutionContext
-  ) => Promise<Record<string, any>>;
-
-  try {
-    fn = new Function("inputs", "context", node.code) as (
-      inputs: Record<string, any>,
-      context: WorkflowExecutionContext
-    ) => Promise<Record<string, any>>;
-  } catch (err) {
-    throw new Error("Failed to compile node code: " + String(err));
-  }
-
-  try {
-    const result = await fn(inputs, context);
-    return result;
-  } catch (err) {
-    throw new Error("Error executing node code: " + String(err));
+    if (result instanceof Promise) {
+      return { success: true, result: await result };
+    }
+    return { success: true, result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

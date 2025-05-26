@@ -220,9 +220,7 @@ export const insertWorkflowsAndNodesFromSurveyResponse = async (
           id: node.id,
           name: node.name,
           description: node.description,
-          type: node.type,
           code: node.code,
-          workflow_id: node.workflow_id,
           created_at: node.created_at || null,
           updated_at: node.updated_at || null,
         };
@@ -235,6 +233,8 @@ export const insertWorkflowsAndNodesFromSurveyResponse = async (
           console.error("Error inserting node:", nodeError);
           throw new Error(`Failed to insert node ${node.id}`);
         }
+
+        await assignNodeToWorkflow(workflow.id, node.id);
 
         if (node.inputs && Array.isArray(node.inputs)) {
           const nodeInputs = node.inputs.map((input: any) => ({
@@ -264,4 +264,44 @@ export const insertWorkflowsAndNodesFromSurveyResponse = async (
     console.error("Insertion failed:", error.message);
     throw new Error(`Failed to insert workflows and nodes: ${error.message}`);
   }
+};
+
+export const assignNodeToWorkflow = async (
+  workflowId: string,
+  nodeId: string
+) => {
+  const { error } = await supabase
+    .from("workflow_node_assignment")
+    .insert({ workflow_id: workflowId, node_id: nodeId });
+
+  if (error) {
+    throw new Error("Failed to assign node to workflow: " + error.message);
+  }
+};
+
+export const getWorkflowWithNodes = async (workflowId: string) => {
+  const { data: assignments, error: assignmentError } = await supabase
+    .from("workflow_node_assignment")
+    .select("node_id")
+    .eq("workflow_id", workflowId);
+
+  if (assignmentError) {
+    throw new Error(
+      "Failed to fetch node assignments: " + assignmentError.message
+    );
+  }
+
+  const nodeIds = assignments?.map((a) => a.node_id) ?? [];
+  if (nodeIds.length === 0) return [];
+
+  const { data: nodes, error: nodeError } = await supabase
+    .from("node")
+    .select("*")
+    .in("id", nodeIds);
+
+  if (nodeError) {
+    throw new Error("Failed to fetch nodes: " + nodeError.message);
+  }
+
+  return nodes;
 };
