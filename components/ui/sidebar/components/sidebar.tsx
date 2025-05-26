@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useSidebar } from "../context";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "../types";
