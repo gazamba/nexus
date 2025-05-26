@@ -19,7 +19,7 @@ export function SurveyBanner({ isPipelineFullyCompleted }: SurveyBannerProps) {
             Complete our workflow survey to help us automate your processes
           </p>
         </div>
-        {isPipelineFullyCompleted ? (
+        {!isPipelineFullyCompleted ? (
           <Link href="/surveys/new">
             <Button>Start Workflow Survey</Button>
           </Link>
