@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SharedHeader } from "@/components/shared/header";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function AuthLayout({
   children,
@@ -19,6 +20,7 @@ export default function AuthLayout({
       </Link>
       <div className="absolute right-8 top-8 md:right-12 md:top-12 z-50">
         <ThemeToggle />
+        <Toaster />
       </div>
       {children}
     </div>

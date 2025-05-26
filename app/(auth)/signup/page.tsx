@@ -24,8 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function SignupPage() {
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -60,6 +62,11 @@ export default function SignupPage() {
         setError(error.message);
         return;
       }
+
+      toast({
+        title: "Account created",
+        description: "Go to the login page to sign in",
+      });
 
       router.replace("/login");
     } catch (err) {
