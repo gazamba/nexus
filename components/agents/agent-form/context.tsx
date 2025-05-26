@@ -25,9 +25,9 @@ export function AgentFormProvider({ children }: { children: React.ReactNode }) {
     capabilities: [],
     model: "gpt-4",
     temperature: 0.7,
-    maxTokens: 2000,
-    systemPrompt: "",
-    isPublic: false,
+    max_tokens: 2000,
+    system_prompt: "",
+    is_public: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

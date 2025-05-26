@@ -39,7 +39,7 @@ export function Overview({ clientProfile, pipelineData }: OverviewProps) {
         <Pipeline
           pipelineData={pipelineData}
           clientId={clientProfile.id}
-          onDocumentsRefresh={handleDocumentsRefresh}
+          // onDocumentsRefresh={handleDocumentsRefresh}
         />
       </div>
     </div>

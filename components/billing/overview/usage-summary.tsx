@@ -20,7 +20,7 @@ export function UsageSummary({ items }: UsageSummaryProps) {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Usage Summary</h3>
           <Link
-            href="/billing/detailed-report"
+            href="/reporting"
             className="text-blue-500 text-sm flex items-center"
           >
             View detailed report <ArrowRight className="h-3 w-3 ml-1" />

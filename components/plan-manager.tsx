@@ -119,6 +119,7 @@ export function PlanManager() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="text-red-500 hover:text-red-600"
                           onClick={() => handleDeletePlan(plan.id)}
                         >
                           <TrashIcon className="h-4 w-4" />

@@ -29,17 +29,6 @@ export function Tabs() {
       <button
         type="button"
         className={`pb-2 px-1 ${
-          formData.activeTab === "test"
-            ? "border-b-2 border-primary text-primary"
-            : "text-muted-foreground"
-        }`}
-        onClick={setActiveTab("test")}
-      >
-        Test
-      </button>
-      <button
-        type="button"
-        className={`pb-2 px-1 ${
           formData.activeTab === "code"
             ? "border-b-2 border-primary text-primary"
             : "text-muted-foreground"

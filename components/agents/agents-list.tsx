@@ -29,6 +29,9 @@ export function AgentsList({
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
+  const [showConfirmId, setShowConfirmId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -60,7 +63,9 @@ export function AgentsList({
 
   const agentTypes = [
     "all",
-    ...new Set(agents.map((agent) => agent.type).filter(Boolean)),
+    ...new Set(
+      agents.map((agent) => agent.type).filter((t): t is string => !!t)
+    ),
   ];
   const agentStatuses = [
     "all",
@@ -81,6 +86,24 @@ export function AgentsList({
     return matchesSearch && matchesType && matchesStatus;
   });
 
+  const handleDeleteAgent = async (agentId: string) => {
+    setDeletingAgentId(agentId);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/agents/${agentId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete agent");
+      }
+      setAgents((prev) => prev.filter((a) => a.id !== agentId));
+      setShowConfirmId(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setDeletingAgentId(null);
+    }
+  };
+
   if (loading) {
     return <Loading text="Loading agents..." />;
   }
@@ -94,7 +117,7 @@ export function AgentsList({
   }
 
   return (
-    <div>
+    <>
       <div className="flex flex-col space-y-4 mb-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Your Agents</h2>
@@ -181,7 +204,7 @@ export function AgentsList({
                 <p className="text-sm text-muted-foreground mb-4">
                   {agent.description}
                 </p>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col h-full gap-2">
                   <div className="flex justify-between items-center">
                     <div className="text-xs bg-muted px-2 py-1 rounded">
                       {agent.type}
@@ -196,17 +219,19 @@ export function AgentsList({
                       {agent.status}
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {agent.capabilities.map((capability) => (
-                      <span
-                        key={capability}
-                        className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
-                      >
-                        {capability}
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap gap-1 min-h-[28px] mt-2">
+                    {agent.capabilities && agent.capabilities.length > 0
+                      ? agent.capabilities.map((capability) => (
+                          <span
+                            key={capability}
+                            className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
+                          >
+                            {capability}
+                          </span>
+                        ))
+                      : null}
                   </div>
-                  <div className="flex justify-end gap-2 mt-4">
+                  <div className="flex justify-end gap-2 mt-auto pt-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -223,13 +248,56 @@ export function AgentsList({
                       <Play className="h-4 w-4 mr-1" />
                       Test
                     </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setShowConfirmId(agent.id)}
+                      disabled={deletingAgentId === agent.id}
+                    >
+                      Delete
+                    </Button>
                   </div>
+                  {showConfirmId === agent.id && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+                        <h3 className="text-lg font-semibold mb-2">
+                          Delete Agent
+                        </h3>
+                        <p className="mb-4">
+                          Are you sure you want to delete{" "}
+                          <span className="font-bold">{agent.name}</span>? This
+                          action cannot be undone.
+                        </p>
+                        {deleteError && (
+                          <p className="text-red-500 mb-2">{deleteError}</p>
+                        )}
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowConfirmId(null)}
+                            disabled={deletingAgentId === agent.id}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleDeleteAgent(agent.id)}
+                            disabled={deletingAgentId === agent.id}
+                          >
+                            {deletingAgentId === agent.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
