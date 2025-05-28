@@ -98,13 +98,13 @@ export interface Document {
 
 export type UserRole = "admin" | "client" | "se";
 
-export type Profile = Database["public"]["Tables"]["profile"]["Row"];
+export type User = Database["public"]["Tables"]["user"]["Row"];
 
-export type SolutionsEngineerProfile = Profile & {
+export type SolutionsEngineerUser = User & {
   role: "se";
 };
 
-export type ClientProfile = Profile & {
+export type ClientUser = User & {
   role: "client";
 };
 

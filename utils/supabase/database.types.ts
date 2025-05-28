@@ -342,7 +342,7 @@ export type Database = {
           id?: string
           name: string
           node_id: string
-          required: boolean
+          required?: boolean
           type: string
           updated_at?: string | null
           value?: Json | null
@@ -526,57 +526,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profile: {
-        Row: {
-          admin: boolean | null
-          avatar_initial: string | null
-          bill_rate: number | null
-          billing: boolean | null
-          cost_rate: number | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          notes: string | null
-          phone: string | null
-          role: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          admin?: boolean | null
-          avatar_initial?: string | null
-          bill_rate?: number | null
-          billing?: boolean | null
-          cost_rate?: number | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          notes?: string | null
-          phone?: string | null
-          role?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          admin?: boolean | null
-          avatar_initial?: string | null
-          bill_rate?: number | null
-          billing?: boolean | null
-          cost_rate?: number | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          notes?: string | null
-          phone?: string | null
-          role?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       proposal: {
         Row: {
           client_id: string
@@ -711,6 +660,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user: {
+        Row: {
+          admin: boolean | null
+          avatar_initial: string | null
+          bill_rate: number | null
+          billing: boolean | null
+          cost_rate: number | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin?: boolean | null
+          avatar_initial?: string | null
+          bill_rate?: number | null
+          billing?: boolean | null
+          cost_rate?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin?: boolean | null
+          avatar_initial?: string | null
+          bill_rate?: number | null
+          billing?: boolean | null
+          cost_rate?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       workflow: {
         Row: {
