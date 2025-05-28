@@ -1,11 +1,11 @@
 import { createClient } from "../../utils/supabase/client";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 
 const supabase = createClient();
 
 export const getSolutionEngineer = async (
   clientId: string
-): Promise<{ data: Profile | undefined }> => {
+): Promise<{ data: User | undefined }> => {
   const { data: assignment, error: assignmentError } = await supabase
     .from("solutions_engineer_assignment")
     .select("se_user_id")
@@ -17,16 +17,16 @@ export const getSolutionEngineer = async (
     return { data: undefined };
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profile")
+  const { data: user, error: userError } = await supabase
+    .from("user")
     .select("*")
     .eq("user_id", assignment.se_user_id)
     .single();
 
-  if (profileError || !profile) {
-    console.error("Error fetching solution engineer profile:", profileError);
+  if (userError || !user) {
+    console.error("Error fetching solution engineer:", userError);
     return { data: undefined };
   }
 
-  return { data: profile };
+  return { data: user };
 };

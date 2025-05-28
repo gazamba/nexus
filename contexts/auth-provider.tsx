@@ -4,11 +4,11 @@ import type React from "react";
 import { createClient } from "@/utils/supabase/client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 
 interface AuthContextType {
-  user: Profile | null;
-  setUser: (user: Profile) => void;
+  user: User | null;
+  setUser: (user: User) => void;
   isAdmin: boolean;
   isClient: boolean;
   isSE: boolean;
@@ -16,7 +16,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function mapSupabaseUser(supabaseUser: SupabaseUser): Profile {
+function mapSupabaseUser(supabaseUser: SupabaseUser): User {
   return {
     id: supabaseUser.id,
     user_id: supabaseUser.id,
@@ -40,7 +40,7 @@ function mapSupabaseUser(supabaseUser: SupabaseUser): Profile {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Profile | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
