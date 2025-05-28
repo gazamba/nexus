@@ -7,7 +7,7 @@ type ClientUserAssignmentInsert =
   Database["public"]["Tables"]["client_user_assignment"]["Insert"];
 type SolutionsEngineerAssignmentInsert =
   Database["public"]["Tables"]["solutions_engineer_assignment"]["Insert"];
-type UserInsert = Database["public"]["Tables"]["profile"]["Insert"];
+type UserInsert = Database["public"]["Tables"]["user"]["Insert"];
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Create client
     const { data: clientData, error: clientError } = await supabase
       .from("client")
       .insert(client as ClientInsert)
@@ -83,25 +82,23 @@ export async function POST(request: NextRequest) {
     }
     const clientId = clientData.id;
 
-    // 2. Optionally create user (profile) and client_user_assignment
     if (user) {
       let userId = user.id;
       if (!userId) {
-        // Insert user profile if not already created
-        const { data: userProfile, error: userError } = await supabase
-          .from("profile")
+        const { data: userData, error: userError } = await supabase
+          .from("user")
           .insert(user as UserInsert)
           .select("id")
           .single();
-        if (userError || !userProfile) {
+        if (userError || !userData) {
           return NextResponse.json(
-            { error: "Failed to create user profile" },
+            { error: "Failed to create user" },
             { status: 500 }
           );
         }
-        userId = userProfile.id;
+        userId = userData.id;
       }
-      // Insert client_user_assignment
+
       const { error: assignmentError } = await supabase
         .from("client_user_assignment")
         .insert({
@@ -116,7 +113,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Optionally create solutions_engineer_assignment
     if (solutionsEngineerId) {
       const { error: seAssignmentError } = await supabase
         .from("solutions_engineer_assignment")

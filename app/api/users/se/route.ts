@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSolutionsEngineers } from "@/lib/services/profile-service";
+import { getUsersByRole } from "@/lib/services/user-service";
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET() {
@@ -15,8 +15,8 @@ export async function GET() {
       );
     }
 
-    const solutionsEngineers = await getSolutionsEngineers();
-    return NextResponse.json({ solutionsEngineers });
+    const users = await getUsersByRole("se");
+    return NextResponse.json({ users });
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message || "Internal Server Error" },

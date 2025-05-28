@@ -1,15 +1,8 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import { createNextPipelineProgress } from "@/lib/services/pipeline-service";
-
-interface SignUpData {
-  email: string;
-  password: string;
-  name: string;
-  role: "admin" | "client" | "se";
-}
+import { v4 as uuidv4 } from "uuid";
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
@@ -45,8 +38,8 @@ export async function signup(formData: FormData) {
     return signUpError;
   } else {
     console.log("Created user ID:", data.user?.id);
-    const { error: profileError } = await supabase.from("profile").insert({
-      user_id: data.user?.id,
+    const { error: userError } = await supabase.from("user").insert({
+      id: data.user?.id,
       email: email,
       full_name: `${firstName} ${lastName}`,
       avatar_initial: firstName[0],
@@ -56,16 +49,16 @@ export async function signup(formData: FormData) {
       admin: isAdmin,
       notes: notes,
     });
-    if (profileError) {
-      console.error("Error creating profile:", {
-        message: profileError.message,
-        details: profileError.details,
-        hint: profileError.hint,
+    if (userError) {
+      console.error("Error creating user:", {
+        message: userError.message,
+        details: userError.details,
+        hint: userError.hint,
       });
-      console.error("Error creating profile:", profileError);
-      return profileError;
+      console.error("Error creating user:", userError);
+      return userError;
     } else {
-      console.log("Profile created successfully:", data);
+      console.log("User created successfully:", data);
 
       if (role === "client" && data.user?.id) {
         try {
@@ -80,7 +73,8 @@ export async function signup(formData: FormData) {
           } else if (clientData?.client_id) {
             await createNextPipelineProgress(
               data.user.id,
-              clientData.client_id
+              clientData.client_id,
+              uuidv4()
             );
           }
         } catch (error) {

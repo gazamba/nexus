@@ -48,8 +48,8 @@ export async function signup(formData: FormData) {
     return signUpError;
   } else {
     console.log("Created user ID:", data.user?.id);
-    const { error: profileError } = await supabase.from("profile").insert({
-      user_id: data.user?.id,
+    const { error: userError } = await supabase.from("user").insert({
+      id: data.user?.id,
       email: email,
       full_name: fullName,
       avatar_initial: fullName[0],
@@ -59,16 +59,16 @@ export async function signup(formData: FormData) {
       admin: isAdmin,
       notes: notes,
     });
-    if (profileError) {
-      console.error("Error creating profile:", {
-        message: profileError.message,
-        details: profileError.details,
-        hint: profileError.hint,
+    if (userError) {
+      console.error("Error creating user:", {
+        message: userError.message,
+        details: userError.details,
+        hint: userError.hint,
       });
-      console.error("Error creating profile:", profileError);
-      return profileError;
+      console.error("Error creating user:", userError);
+      return userError;
     } else {
-      console.log("Profile created successfully:", data);
+      console.log("User created successfully:", data);
       return null;
     }
   }

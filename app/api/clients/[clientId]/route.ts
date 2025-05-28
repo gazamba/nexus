@@ -49,30 +49,20 @@ export async function GET(
     const clientUserId = clientData.client_user_assignment?.[0]?.client_user_id;
     const seUserId = clientData.solutions_engineer_assignment?.[0]?.se_user_id;
 
-    const [{ data: clientUserProfile }, { data: solutionsEngineerProfile }] =
+    const [{ data: clientUser }, { data: solutionsEngineer }] =
       await Promise.all([
         clientUserId
-          ? supabase
-              .from("profile")
-              .select("*")
-              .eq("user_id", clientUserId)
-              .single()
+          ? supabase.from("user").select("*").eq("id", clientUserId).single()
           : Promise.resolve({ data: null }),
         seUserId
-          ? supabase
-              .from("profile")
-              .select("*")
-              .eq("user_id", seUserId)
-              .single()
+          ? supabase.from("user").select("*").eq("id", seUserId).single()
           : Promise.resolve({ data: null }),
       ]);
 
     const response = {
       ...clientData,
-      client_user_profile: clientUserProfile ? [clientUserProfile] : [],
-      solutions_engineer_profile: solutionsEngineerProfile
-        ? [solutionsEngineerProfile]
-        : [],
+      client_user: clientUser ? [clientUser] : [],
+      solutions_engineer: solutionsEngineer ? [solutionsEngineer] : [],
     };
 
     return NextResponse.json(response);

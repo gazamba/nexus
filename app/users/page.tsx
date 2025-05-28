@@ -4,14 +4,14 @@ import { useAuth } from "@/contexts/auth-provider";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { UserTable } from "@/components/user-table";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { UserEditDialog } from "@/components/user-table";
 
 export default function UsersPage() {
   const { user } = useAuth();
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
@@ -23,7 +23,7 @@ export default function UsersPage() {
     async function fetchData() {
       setLoading(true);
       if (user?.role === "admin") {
-        const { data: allUsers } = await supabase.from("profile").select("*");
+        const { data: allUsers } = await supabase.from("user").select("*");
         const { data: allClients } = await supabase.from("client").select("*");
 
         const seUserIds = (allUsers || [])
@@ -83,9 +83,9 @@ export default function UsersPage() {
         const clientUserIds =
           clientUserAssignments?.map((a) => a.client_user_id) || [];
         const { data: clientUsers } = await supabase
-          .from("profile")
+          .from("user")
           .select("*")
-          .in("user_id", clientUserIds);
+          .in("id", clientUserIds);
         console.log(`clientUsers: ${JSON.stringify(clientUsers, null, 2)}`);
         const usersWithClients = (clientUsers || []).map((u) => ({
           ...u,
@@ -105,7 +105,7 @@ export default function UsersPage() {
     fetchData();
   }, [user]);
 
-  const canManageUser = (rowUser: Profile) => {
+  const canManageUser = (rowUser: User) => {
     if (user?.role === "admin") return true;
     if (user?.role === "se" && rowUser.role === "client") return true;
     return false;

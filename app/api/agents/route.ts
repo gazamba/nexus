@@ -74,9 +74,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: userRole } = await supabase
-      .from("profile")
+      .from("user")
       .select("role")
-      .eq("user_id", userId)
+      .eq("id", userId)
       .single();
 
     const url = new URL(request.url);
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     if (userRole?.role !== "admin" && clientId) {
       const { data: userClient } = await supabase
-        .from("users")
+        .from("user")
         .select("client_id")
         .eq("id", userId)
         .single();

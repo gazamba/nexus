@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getClients } from "@/lib/services/profile-service";
+import { getUsersByRole } from "@/lib/services/user-service";
 
 export async function GET() {
   try {
-    const clients = await getClients();
-    return NextResponse.json({ clients });
+    const users = await getUsersByRole("client");
+    return NextResponse.json({ users });
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message || "Internal Server Error" },
