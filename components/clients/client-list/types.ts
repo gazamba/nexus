@@ -45,11 +45,11 @@ export interface Workflow {
   created_at: string;
 }
 
-export interface ClientProfile {
+export interface ClientUser {
   id: string;
   name: string;
-  solutions_engineer_profile: Engineer[];
-  client_user_profile: User[];
+  solutions_engineer: Engineer[];
+  client_user: User[];
   document: Document[];
 }
 

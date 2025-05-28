@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 
-export function UserCard({ user }: { user: Profile }) {
+export function UserCard({ user }: { user: User }) {
   console.log(`user: ${JSON.stringify(user)}`);
   return (
     <div className="bg-card p-6 rounded-md border">

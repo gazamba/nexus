@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { ClientProfile, PipelineStep, Workflow } from "./types";
+import { ClientUser, PipelineStep, Workflow } from "./types";
 import { API_ENDPOINTS } from "./constants";
 import { getPipelineDataByClient } from "@/lib/services/pipeline-service";
 
 export function useClientData() {
   const params = useParams();
-  const [clientProfile, setClientProfile] = useState<ClientProfile | null>(
-    null
-  );
+  const [clientUser, setClientUser] = useState<ClientUser | null>(null);
   const [pipelineData, setPipelineData] = useState<any[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,14 +17,14 @@ export function useClientData() {
       console.log(JSON.stringify(params));
       try {
         setIsLoading(true);
-        const profileResponse = await fetch(
-          API_ENDPOINTS.CLIENT_PROFILE(params.clientId as string)
+        const clientUserResponse = await fetch(
+          API_ENDPOINTS.CLIENT_USER(params.clientId as string)
         );
-        if (!profileResponse.ok) {
+        if (!clientUserResponse.ok) {
           throw new Error("Client not found");
         }
-        const profileData = await profileResponse.json();
-        setClientProfile(profileData);
+        const clientUserData = await clientUserResponse.json();
+        setClientUser(clientUserData);
 
         const pipelineResponse = await getPipelineDataByClient(
           params.clientId as string
@@ -53,7 +51,7 @@ export function useClientData() {
   }, [params.clientId]);
 
   return {
-    clientProfile,
+    clientUser,
     pipelineData,
     workflows,
     isLoading,

@@ -13,20 +13,20 @@ export function ClientList() {
   const [activeTab, setActiveTab] = useState<
     (typeof TAB_NAMES)[keyof typeof TAB_NAMES]
   >(TAB_NAMES.OVERVIEW);
-  const { clientProfile, pipelineData, workflows, isLoading, error } =
+  const { clientUser, pipelineData, workflows, isLoading, error } =
     useClientData();
 
   if (isLoading) {
     return <Loading />;
   }
 
-  if (error || !clientProfile) {
+  if (error || !clientUser) {
     return <Error />;
   }
 
   return (
     <div className="space-y-6">
-      <Header clientName={clientProfile.name} />
+      <Header clientName={clientUser.name} />
 
       <div className="flex space-x-4 border-b">
         <button
@@ -52,9 +52,9 @@ export function ClientList() {
       </div>
 
       {activeTab === TAB_NAMES.OVERVIEW ? (
-        <Overview clientProfile={clientProfile} pipelineData={pipelineData} />
+        <Overview clientUser={clientUser} pipelineData={pipelineData} />
       ) : (
-        <ClientWorkflows clientId={clientProfile.id} />
+        <ClientWorkflows clientId={clientUser.id} />
       )}
     </div>
   );

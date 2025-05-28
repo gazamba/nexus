@@ -10,5 +10,5 @@ export const TAB_NAMES = {
 } as const;
 
 export const API_ENDPOINTS = {
-  CLIENT_PROFILE: (id: string) => `/api/clients/${id}`,
+  CLIENT_USER: (id: string) => `/api/clients/${id}`,
 } as const;

@@ -7,9 +7,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { Trash } from "lucide-react";
-import { SolutionsEngineerProfile } from "@/types/types";
-
-async function fetchSolutionsEngineers() {}
+import { SolutionsEngineerUser } from "@/types/types";
 
 interface User {
   name: string;
@@ -49,13 +47,13 @@ export function AddClient() {
   ]);
 
   const [solutionsEngineers, setSolutionsEngineers] = useState<
-    SolutionsEngineerProfile[]
+    SolutionsEngineerUser[]
   >([]);
   const [assignedSEs, setAssignedSEs] = useState<any[]>([]);
   const [selectedSE, setSelectedSE] = useState("");
 
   useEffect(() => {
-    fetch("/api/profiles/se")
+    fetch("/api/users/se")
       .then((res) => res.json())
       .then((data) => {
         setSolutionsEngineers(data.solutionsEngineers);

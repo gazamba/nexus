@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 import { createClient } from "@/utils/supabase/client";
 
 interface TableHeaderProps {
@@ -14,9 +14,9 @@ interface TableCellProps {
 }
 
 interface UserTableProps {
-  users: Profile[];
+  users: User[];
   clients?: any[];
-  canManageUser?: (user: Profile) => boolean;
+  canManageUser?: (user: User) => boolean;
 }
 
 const TABS = {
@@ -70,7 +70,7 @@ function UserEditDialog({ user, open, onClose, onSave }: any) {
     try {
       const supabase = createClient();
       const { error } = await supabase
-        .from("profile")
+        .from("user")
         .update({
           full_name: form.full_name,
           email: form.email,
@@ -82,7 +82,7 @@ function UserEditDialog({ user, open, onClose, onSave }: any) {
           cost_rate: form.role === "se" ? form.cost_rate : null,
           bill_rate: form.role === "se" ? form.bill_rate : null,
         })
-        .eq("user_id", user.user_id);
+        .eq("id", user.id);
       if (error) throw error;
       onSave();
     } catch (err: any) {
@@ -213,7 +213,6 @@ export function UserTable({ users, clients, canManageUser }: UserTableProps) {
     );
   }
 
-  // Filter users by role
   const filteredUsers = users.filter((user) =>
     activeTab === "ADMIN" ? user.role === "admin" : user.role === "se"
   );
@@ -229,9 +228,9 @@ export function UserTable({ users, clients, canManageUser }: UserTableProps) {
     setLoadingDelete(true);
     try {
       const supabase = createClient();
-      // Delete from profile
-      await supabase.from("profile").delete().eq("user_id", user.user_id);
-      // Delete from auth
+
+      await supabase.from("user").delete().eq("id", user.id);
+
       await supabase.auth.admin.deleteUser(user.user_id);
       window.location.reload();
     } catch (err) {
@@ -347,7 +346,7 @@ export function UserTable({ users, clients, canManageUser }: UserTableProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(user)}
-                    disabled={loadingDelete && deletingUser === user.user_id}
+                    disabled={loadingDelete && deletingUser === user.id}
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>

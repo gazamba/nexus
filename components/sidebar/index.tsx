@@ -96,13 +96,13 @@ export function Sidebar() {
   const [filteredLinks, setFilteredLinks] = useState(links);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUser = async () => {
       if (!user) return;
       const supabase = createClient();
       const { data } = await supabase
-        .from("profile")
+        .from("user")
         .select("billing")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
       if (data && data.billing === false) {
         setFilteredLinks(links.filter((l) => l.href !== "/billing"));
@@ -110,7 +110,7 @@ export function Sidebar() {
         setFilteredLinks(links);
       }
     };
-    fetchProfile();
+    fetchUser();
   }, [user]);
 
   return (

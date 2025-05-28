@@ -11,7 +11,7 @@ import { ActiveWorkflows } from "./metrics/active-workflows";
 import { UserCard } from "./user-card";
 import { getClientId } from "@/lib/services/client-service";
 import { getSolutionEngineer } from "@/lib/services/solution-engineer-service";
-import { Profile } from "@/types/types";
+import { User } from "@/types/types";
 import { Loading } from "@/components/ui/loading";
 
 export function ClientDashboard() {
@@ -19,7 +19,7 @@ export function ClientDashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [clientId, setClientId] = useState<string | undefined>(undefined);
-  const [solutionEngineer, setSolutionEngineer] = useState<Profile | undefined>(
+  const [solutionEngineer, setSolutionEngineer] = useState<User | undefined>(
     undefined
   );
 
